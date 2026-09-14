@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Myline.Core/Myline.Core.csproj" />
+  <Project Path="Myline.Display/Myline.Display.csproj" />
+  <Project Path="Myline.Providers/Myline.Providers.csproj" />
+  <Project Path="Myline.Repository/Myline.Repository.csproj" />
+  <Project Path="Myline.Tests/Myline.Tests.csproj" />
+</Solution>
