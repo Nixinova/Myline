@@ -1,0 +1,45 @@
+namespace Myline.Core.Models;
+
+public class Result<TValue>
+{
+	public bool IsError { get; init; }
+
+	public TValue Value
+	{
+		get => IsError
+			? throw new InvalidOperationException("Cannot get value of failed Result")
+			: field!;
+		init;
+	}
+
+	public string? Error
+	{
+		get => IsError
+			? field!
+			: throw new InvalidOperationException("Cannot get error from successful Result");
+		init;
+	}
+
+	private Result(TValue? value, string? error)
+	{
+		if (!(value is null ^ error is null))
+		{
+			throw new InvalidOperationException("Mutually exclusive");
+		}
+
+		if (value is not null)
+		{
+			IsError = false;
+			Value = value;
+		}
+		else
+		{
+			IsError = true;
+			Error = error;
+		}
+	}
+
+	public static Result<TValue> Ok(TValue value) => new(value, null);
+
+	public static Result<TValue> Fail(string error) => new(default, error);
+}
