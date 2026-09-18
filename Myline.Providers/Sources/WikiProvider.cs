@@ -38,13 +38,15 @@ public class WikiProvider : IProvider
 			var responseObj = await WebRequests.Get<WikiApiResponse>(apiUrl, urlParams);
 			foreach (var edit in responseObj?.Query.UserContributions ?? [])
 			{
+				var editSummary = string.IsNullOrWhiteSpace(edit.Comment) ? "(no summary)" : edit.Comment;
+				var diffAmt = edit.SizeDiff < 0 ? edit.SizeDiff.ToString() : "+" + edit.SizeDiff;
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Type = HistoryType.Edit,
 					Site = apiUrl.Host,
 					Context = edit.Title,
-					Description = $"{edit.Comment} ({(edit.SizeDiff < 0 ? edit.SizeDiff : '+' + edit.SizeDiff)})",
+					Description = $"{editSummary} ({diffAmt})",
 				};
 				history.Add(historyItem);
 			}

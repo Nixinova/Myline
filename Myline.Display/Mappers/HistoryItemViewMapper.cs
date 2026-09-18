@@ -26,15 +26,15 @@ public static class HistoryItemViewMapper
 			case TimestampPrecision.Year:
 				return timestamp.Time.Year.ToString();
 			case TimestampPrecision.Month:
-				return timestamp.Time.ToString("MMM yyyy");
+				return timestamp.Time.ToString("yyyy-MMM");
 			case TimestampPrecision.Day:
-				return timestamp.Time.ToString("dd MMM yyyy");
+				return timestamp.Time.ToString("yyyy-MMM-dd");
 			case TimestampPrecision.Hour:
-				return timestamp.Time.ToString("dd MMM yyyy, ha");
+				return timestamp.Time.ToString("yyyy-MMM-dd htt");
 			case TimestampPrecision.Minute:
-				return timestamp.Time.ToString("dd MMM yyyy, h:mma");
+				return timestamp.Time.ToString("yyyy-MMM-dd HH:mm");
 			case TimestampPrecision.Second:
-				return timestamp.Time.ToString("dd MMM yyyy, h:mm:ssa");
+				return timestamp.Time.ToString("yyyy-MMM-dd HH:mm:ss");
 			default:
 				return "";
 		}

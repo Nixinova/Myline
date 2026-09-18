@@ -11,7 +11,7 @@ public static class CliDisplay
 			Console.WriteLine(
 				"[" + item.FormattedTimestamp + "] "
 				+ item.Type + ": "
-				+ item.Site + " | "
+				+ item.Site.PadRight(20, ' ')
 				+ item.Context + " - "
 				+ item.Description
 			);
