@@ -41,8 +41,10 @@ public class WikiProvider : IProvider
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
-					Title = $"{apiUrl.Host}: Edited '{edit.Title}': '{edit.Comment}' ({(edit.SizeDiff < 0 ? edit.SizeDiff : '+' + edit.SizeDiff)})",
-					Type = HistoryType.Edit
+					Type = HistoryType.Edit,
+					Site = apiUrl.Host,
+					Context = edit.Title,
+					Description = $"{edit.Comment} ({(edit.SizeDiff < 0 ? edit.SizeDiff : '+' + edit.SizeDiff)})",
 				};
 				history.Add(historyItem);
 			}

@@ -8,7 +8,13 @@ public static class CliDisplay
 	{
 		foreach (var item in items)
 		{
-			Console.WriteLine($"[{item.FormattedTimestamp}] {item.Type}: {item.Title}");
+			Console.WriteLine(
+				"[" + item.FormattedTimestamp + "] "
+				+ item.Type + ": "
+				+ item.Site + " | "
+				+ item.Context + " - "
+				+ item.Description
+			);
 		}
 	}
 }

@@ -10,9 +10,11 @@ public static class HistoryItemViewMapper
 		return items.Select(item =>
 			new ViewHistoryItem
 			{
-				Type = item.Type.ToString(),
 				FormattedTimestamp = CreateTimestamp(item.Timestamp),
-				Title = item.Title,
+				Type = item.Type.ToString(),
+				Site = item.Site,
+				Context = item.Context,
+				Description = item.Description,
 			}
 		).ToList();
 	}
