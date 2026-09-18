@@ -1,4 +1,5 @@
 using Myline.Core.Models;
+using Myline.Core.Utilities;
 using Myline.Display.Mappers;
 using Myline.Providers;
 using Myline.Providers.Interfaces;
@@ -10,6 +11,8 @@ public class Program
 {
 	static async Task Main(string[] args)
 	{
+		WebRequests.Init();
+
 		var sourceProviders = GetProviders().ToList();
 		var provider = new HistoryProvider(sourceProviders);
 
@@ -52,6 +55,13 @@ public class Program
 
 	private static IEnumerable<IProvider> GetProviders()
 	{
-		yield return new DummyProvider();
+		yield return new WikiProvider(new List<Uri>
+		{
+			new("https://en.wikipedia.org/w/api.php"),
+			new("https://en.wiktionary.org/w/api.php"),
+			new("https://minecraft.wiki/api.php"),
+			new("https://reforj.wiki.gg/api.php"),
+			new("https://hytalewiki.org/api.php"),
+		});
 	}
 }
