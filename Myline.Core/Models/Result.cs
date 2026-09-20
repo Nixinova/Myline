@@ -12,7 +12,7 @@ public class Result<TValue>
 		init;
 	}
 
-	public string? Error
+	public string Error
 	{
 		get => IsError
 			? field!

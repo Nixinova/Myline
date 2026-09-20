@@ -27,8 +27,12 @@ public class LastFmProvider : IProvider
 			{ "limit", "200" },
 			{ "format", "json" },
 		};
-		var responseObj = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
-		foreach (var track in responseObj?.RecentTracks.Tracks ?? [])
+		var result = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
+		if (result.IsError)
+		{
+			return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+		}
+		foreach (var track in result.Value?.RecentTracks.Tracks ?? [])
 		{
 			var uts = long.Parse(track.Date.UnixTimeSeconds);
 			var date = DateTimeOffset.FromUnixTimeSeconds(uts).DateTime;

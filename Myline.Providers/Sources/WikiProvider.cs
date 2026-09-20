@@ -25,8 +25,12 @@ public class WikiProvider(IList<Uri> apiUrls) : IProvider
 				{ "ucprop", "ids|title|timestamp|comment|size|sizediff|flags" },
 				{ "format", "json" },
 			};
-			var responseObj = await WebRequests.Get<WikiApiResponse>(apiUrl, urlParams);
-			foreach (var edit in responseObj?.Query.UserContributions ?? [])
+			var result = await WebRequests.Get<WikiApiResponse>(apiUrl, urlParams);
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+			}
+			foreach (var edit in result.Value?.Query.UserContributions ?? [])
 			{
 				var editSummary = string.IsNullOrWhiteSpace(edit.Comment) ? "(no summary)" : edit.Comment;
 				var diffAmt = edit.SizeDiff < 0 ? edit.SizeDiff.ToString() : "+" + edit.SizeDiff;
