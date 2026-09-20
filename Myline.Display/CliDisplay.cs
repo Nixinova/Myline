@@ -10,8 +10,8 @@ public static class CliDisplay
 		{
 			Console.WriteLine(
 				"[" + item.FormattedTimestamp + "] "
-				+ item.Type + ": "
 				+ item.Site.PadRight(20, ' ')
+				+ (item.Type + ": ").PadRight(10, ' ')
 				+ item.Context + " - "
 				+ item.Description
 			);

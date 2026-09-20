@@ -67,6 +67,8 @@ public class Program
 		var wikiApiUrls = await wikiProviderConfig.GetWikiApiUrls();
 		list.Add(new WikiProvider(wikiApiUrls.ToList()));
 
+		list.Add(new LastFmProvider());
+
 		return list;
 	}
 }
