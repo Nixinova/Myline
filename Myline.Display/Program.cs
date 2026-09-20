@@ -47,7 +47,11 @@ public class Program
 
 		var username = new Username(args[0]);
 		var fromTime = DateTime.Parse(args[1]);
-		var toTime = DateTime.Parse(args[2]);
+		var toTime =  DateTime.Parse(args[2]);
+		var fromTz = TimeZoneInfo.Local.GetUtcOffset(fromTime);
+		var toTz = TimeZoneInfo.Local.GetUtcOffset(toTime);
+		fromTime = DateTime.SpecifyKind(DateTime.Parse(args[1]) - fromTz, DateTimeKind.Utc);
+		toTime = DateTime.SpecifyKind(DateTime.Parse(args[2]) - toTz,  DateTimeKind.Utc);
 		return Result<ProviderInput>.Ok(new ProviderInput
 		{
 			Username = username,

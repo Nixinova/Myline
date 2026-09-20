@@ -21,22 +21,17 @@ public static class HistoryItemViewMapper
 
 	private static string CreateTimestamp(Timestamp timestamp)
 	{
-		switch (timestamp.Precision)
+		var tzOffset = TimeZoneInfo.Local.GetUtcOffset(timestamp.Time);
+		var time = DateTime.SpecifyKind(timestamp.Time + tzOffset, DateTimeKind.Local);
+		return timestamp.Precision switch
 		{
-			case TimestampPrecision.Year:
-				return timestamp.Time.Year.ToString();
-			case TimestampPrecision.Month:
-				return timestamp.Time.ToString("yyyy-MMM");
-			case TimestampPrecision.Day:
-				return timestamp.Time.ToString("yyyy-MMM-dd");
-			case TimestampPrecision.Hour:
-				return timestamp.Time.ToString("yyyy-MMM-dd htt");
-			case TimestampPrecision.Minute:
-				return timestamp.Time.ToString("yyyy-MMM-dd HH:mm");
-			case TimestampPrecision.Second:
-				return timestamp.Time.ToString("yyyy-MMM-dd HH:mm:ss");
-			default:
-				return "";
-		}
+			TimestampPrecision.Year => time.Year.ToString(),
+			TimestampPrecision.Month => time.ToString("yyyy-MMM"),
+			TimestampPrecision.Day => time.ToString("yyyy-MMM-dd"),
+			TimestampPrecision.Hour => time.ToString("yyyy-MMM-dd htt"),
+			TimestampPrecision.Minute => time.ToString("yyyy-MMM-dd HH:mm"),
+			TimestampPrecision.Second => time.ToString("yyyy-MMM-dd HH:mm:ss"),
+			_ => ""
+		};
 	}
 }
