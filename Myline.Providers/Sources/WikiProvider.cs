@@ -5,23 +5,13 @@ using Myline.Providers.ResponseModels;
 
 namespace Myline.Providers.Sources;
 
-public class WikiProvider : IProvider
+public class WikiProvider(IList<Uri> apiUrls) : IProvider
 {
-	private readonly IList<Uri> _wikiApiUrls = [];
-
-	public WikiProvider(IList<Uri> wikiApiUrls)
-	{
-		foreach (var wikiApiUrl in wikiApiUrls)
-		{
-			_wikiApiUrls.Add(wikiApiUrl);
-		}
-	}
-
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
 		var history = new List<HistoryItem>();
 
-		foreach (var apiUrl in _wikiApiUrls)
+		foreach (var apiUrl in apiUrls)
 		{
 			var urlParams = new Dictionary<string, string>
 			{

@@ -1,3 +1,4 @@
+using Myline.Core.Configuration;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Display.Mappers;
@@ -11,9 +12,10 @@ public class Program
 {
 	static async Task Main(string[] args)
 	{
+		Configuration.Create();
 		WebRequests.Init();
 
-		var sourceProviders = GetProviders().ToList();
+		var sourceProviders = (await CreateProviders()).ToList();
 		var provider = new HistoryProvider(sourceProviders);
 
 		var inputResult = ParseInput(args);
@@ -53,15 +55,14 @@ public class Program
 		});
 	}
 
-	private static IEnumerable<IProvider> GetProviders()
+	private static async Task<IList<IProvider>> CreateProviders()
 	{
-		yield return new WikiProvider(new List<Uri>
-		{
-			new("https://en.wikipedia.org/w/api.php"),
-			new("https://en.wiktionary.org/w/api.php"),
-			new("https://minecraft.wiki/api.php"),
-			new("https://reforj.wiki.gg/api.php"),
-			new("https://hytalewiki.org/api.php"),
-		});
+		var list = new List<IProvider>();
+
+		var wikiProviderConfig = new WikiProviderConfiguration();
+		var wikiApiUrls = await wikiProviderConfig.GetWikiApiUrls();
+		list.Add(new WikiProvider(wikiApiUrls.ToList()));
+
+		return list;
 	}
 }
