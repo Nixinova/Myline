@@ -6,7 +6,7 @@ public static class CliDisplay
 {
 	public static void DisplayData(IReadOnlyCollection<ViewHistoryItem> items)
 	{
-		foreach (var item in items.OrderBy(x => x.FormattedTimestamp))
+		foreach (var item in items.OrderBy(x => x.Sortkey))
 		{
 			Console.WriteLine(
 				"[" + item.FormattedTimestamp + "] "

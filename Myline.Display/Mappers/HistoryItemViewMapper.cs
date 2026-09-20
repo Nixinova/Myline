@@ -10,6 +10,7 @@ public static class HistoryItemViewMapper
 		return items.Select(item =>
 			new ViewHistoryItem
 			{
+				Sortkey = item.Timestamp.Time.Ticks,
 				FormattedTimestamp = CreateTimestamp(item.Timestamp),
 				Type = item.Type.ToString(),
 				Site = item.Site,
