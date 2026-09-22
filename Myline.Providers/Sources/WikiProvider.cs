@@ -1,5 +1,7 @@
+using System.Text.RegularExpressions;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
+using Myline.Core.Utilities.Extensions;
 using Myline.Providers.Interfaces;
 using Myline.Providers.ResponseModels;
 
@@ -32,20 +34,46 @@ public class WikiProvider(IList<Uri> apiUrls) : IProvider
 			}
 			foreach (var edit in result.Value?.Query.UserContributions ?? [])
 			{
-				var editSummary = string.IsNullOrWhiteSpace(edit.Comment) ? "(no summary)" : edit.Comment;
+				var (section, summary) = ParseEditSummary(edit.Comment);
 				var diffAmt = edit.SizeDiff < 0 ? edit.SizeDiff.ToString() : "+" + edit.SizeDiff;
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Type = HistoryType.Edit,
 					Site = apiUrl.Host,
-					Context = edit.Title,
-					Description = $"{editSummary} ({diffAmt})",
+					Context = edit.Title + (section != null ? " § " + section : ""),
+					Description = $"{summary} ({diffAmt})",
 				};
 				history.Add(historyItem);
 			}
 		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+	}
+
+	private static (string? Section, string Summary) ParseEditSummary(string summary)
+	{
+		const string noSummary = "(no summary)";
+		const string inernalLinkRegex = @"\[\[(?:.+?\|)?(.+?)\]\]";
+		const string sectionSummaryRegex = @"^/\*\s*(.+?)\s*\*/\s*";
+
+		var section = Regex.Match(summary, sectionSummaryRegex).Groups[1].Value;
+
+		summary = summary
+			// Substitute link text
+			.RegexReplace(inernalLinkRegex, "$1")
+			// Better section summaries
+			.RegexReplace(sectionSummaryRegex, "");
+
+		if (string.IsNullOrWhiteSpace(section))
+		{
+			section = null;
+		}
+		if (string.IsNullOrWhiteSpace(summary))
+		{
+			summary = noSummary;
+		}
+
+		return (section, summary);
 	}
 }
