@@ -10,7 +10,7 @@ public static class CliDisplay
 		foreach (var item in items.OrderBy(x => x.Sortkey))
 		{
 			var line = (
-				"[" + item.FormattedTimestamp + "] "
+				"[" + item.FormattedTimestamp.PadRight(20, ' ') + "] "
 				+ item.Site.PadRight(20, ' ')
 				+ (item.Type + ": ").PadRight(10, ' ')
 				+ item.Context + " - "

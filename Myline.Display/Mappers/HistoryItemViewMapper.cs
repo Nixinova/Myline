@@ -1,3 +1,4 @@
+using System.Globalization;
 using Myline.Core.Models;
 using Myline.Display.ViewModels;
 
@@ -24,15 +25,15 @@ public static class HistoryItemViewMapper
 	{
 		var tzOffset = TimeZoneInfo.Local.GetUtcOffset(timestamp.Time);
 		var time = DateTime.SpecifyKind(timestamp.Time + tzOffset, DateTimeKind.Local);
-		return timestamp.Precision switch
+		return (timestamp.Precision switch
 		{
 			TimestampPrecision.Year => time.Year.ToString(),
-			TimestampPrecision.Month => time.ToString("yyyy-MMM"),
-			TimestampPrecision.Day => time.ToString("yyyy-MMM-dd"),
-			TimestampPrecision.Hour => time.ToString("yyyy-MMM-dd htt"),
-			TimestampPrecision.Minute => time.ToString("yyyy-MMM-dd HH:mm"),
-			TimestampPrecision.Second => time.ToString("yyyy-MMM-dd HH:mm:ss"),
+			TimestampPrecision.Month => time.ToString("yyyy-MMM", CultureInfo.InvariantCulture),
+			TimestampPrecision.Day => time.ToString("yyyy-MMM-dd", CultureInfo.InvariantCulture),
+			TimestampPrecision.Hour => time.ToString("yyyy-MMM-dd htt", CultureInfo.InvariantCulture),
+			TimestampPrecision.Minute => time.ToString("yyyy-MMM-dd HH:mm", CultureInfo.InvariantCulture),
+			TimestampPrecision.Second => time.ToString("yyyy-MMM-dd HH:mm:ss", CultureInfo.InvariantCulture),
 			_ => ""
-		};
+		});
 	}
 }
