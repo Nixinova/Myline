@@ -27,7 +27,16 @@ public static class WebRequests
 		{
 			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
 		}
-		var content = await result.Content.ReadFromJsonAsync<TModel>();
+
+		TModel? content;
+		try
+		{
+			content = await result.Content.ReadFromJsonAsync<TModel>();
+		}
+		catch (Exception err)
+		{
+			return Result<TModel?>.Fail(err.Message);
+		}
 		return Result<TModel?>.Ok(content);
 	}
 
@@ -38,7 +47,16 @@ public static class WebRequests
 		{
 			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
 		}
-		var content = await result.Content.ReadFromJsonAsync<TModel>();
+
+		TModel? content;
+		try
+		{
+			content = await result.Content.ReadFromJsonAsync<TModel>();
+		}
+		catch (Exception err)
+		{
+			return Result<TModel?>.Fail(err.Message);
+		}
 		return Result<TModel?>.Ok(content);
 	}
 }
