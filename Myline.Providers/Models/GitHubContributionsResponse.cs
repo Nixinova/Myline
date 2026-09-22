@@ -29,15 +29,17 @@ public record GitHubContributionsCollection
 public record GitHubRepoContributionsData
 {
 	[JsonPropertyName("repository")]
-	public required IReadOnlyList<ContributionRepoData> Data { get; init; }
+	public required ContributionRepoData Data { get; init; }
 }
 
 public record ContributionRepoData
 {
 	[JsonPropertyName("owner")]
 	public required RepoOwner Owner { get; init; }
+
 	[JsonPropertyName("name")]
 	public required string Name { get; init; }
+
 	[JsonPropertyName("nameWithOwner")]
 	public required string FullName { get; init; }
 }

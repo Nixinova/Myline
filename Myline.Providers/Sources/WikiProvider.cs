@@ -36,9 +36,10 @@ public class WikiProvider : IProvider
 			var result = await WebRequests.Get<WikiApiResponse>(apiUri, urlParams);
 			if (result.IsError)
 			{
-				return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+				Console.WriteLine($"Error ({apiUri.Host}): {result.Error}");
+				continue;
 			}
-			foreach (var edit in result.Value?.Query.UserContributions ?? [])
+			foreach (var edit in result.Value!.Query.UserContributions ?? [])
 			{
 				var (section, summary) = ParseEditSummary(edit.Comment);
 				var diffAmt = edit.SizeDiff < 0 ? edit.SizeDiff.ToString() : "+" + edit.SizeDiff;

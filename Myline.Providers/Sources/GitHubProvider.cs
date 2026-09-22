@@ -94,7 +94,7 @@ public class GitHubProvider : IProvider
 		var responses = new List<GitHubCommitsResponse>();
 
 		var repos = contributions.Data.UserData.Contributions.Data
-			.SelectMany(x => x.Data);
+			.Select(x => x.Data);
 		foreach (var repo in repos)
 		{
 			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/commits");
