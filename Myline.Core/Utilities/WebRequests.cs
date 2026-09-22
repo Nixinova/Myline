@@ -6,26 +6,24 @@ namespace Myline.Core.Utilities;
 
 public static class WebRequests
 {
-	private static HttpClient? _client;
-	private static HttpClient Client => _client!;
-
-	public static void Init()
+	public static HttpClient Init()
 	{
-		_client = new HttpClient();
-		_client.DefaultRequestHeaders.UserAgent.ParseAdd("PersonalHistory/0.0");
+		var client = new HttpClient();
+		client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/0.0");
+		return client;
 	}
 
 	public static async Task<Result<TModel?>> Get<TModel>(Uri url, Dictionary<string, string> queryParams, Action<HttpClient>? lambda = null)
 	{
-		Client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/1.0");
-		lambda?.Invoke(Client);
+		var client = Init();
+		lambda?.Invoke(client);
 
 		var queryParamString = "?" + string.Join("&",
 			queryParams.Select(x =>
 				HttpUtility.UrlEncode(x.Key) + "=" + HttpUtility.UrlEncode(x.Value)
 			)
 		);
-		var result = await Client.GetAsync(url + queryParamString);
+		var result = await client.GetAsync(url + queryParamString);
 		if (!result.IsSuccessStatusCode)
 		{
 			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
@@ -45,10 +43,10 @@ public static class WebRequests
 
 	public static async Task<Result<TModel?>> Post<TBody, TModel>(Uri url, TBody body, Action<HttpClient>? lambda = null)
 	{
-		Client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/1.0");
-		lambda?.Invoke(Client);
+		var client = Init();
+		lambda?.Invoke(client);
 
-		var result = await Client.PostAsJsonAsync(url, body);
+		var result = await client.PostAsJsonAsync(url, body);
 		if (!result.IsSuccessStatusCode)
 		{
 			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
