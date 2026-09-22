@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using Myline.Core.Configuration;
+using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Core.Utilities.Extensions;
@@ -7,19 +9,23 @@ using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
-public class WikiProvider(IList<Uri> apiUrls) : IProvider
+public class WikiProvider : IProvider
 {
+	private static WikiConfig Config => ConfigStore.Config.WikiConfig;
+
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
 		var history = new List<HistoryItem>();
 
-		foreach (var apiUrl in apiUrls)
+		foreach (var apiUrl in Config.ApiUrls)
 		{
+			var apiUri = new Uri(apiUrl);
+			var username = Config.UsernamesPerWikiDomain[new Uri(apiUrl).Host];
 			var urlParams = new Dictionary<string, string>
 			{
 				{ "action", "query" },
 				{ "list", "usercontribs" },
-				{ "ucuser", input.Username.Value },
+				{ "ucuser", username },
 				{ "ucstart", input.DateRange.To.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'") },
 				{ "ucend", input.DateRange.From.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'") },
 				{ "ucdir", "older" },
@@ -27,7 +33,7 @@ public class WikiProvider(IList<Uri> apiUrls) : IProvider
 				{ "ucprop", "ids|title|timestamp|comment|size|sizediff|flags" },
 				{ "format", "json" },
 			};
-			var result = await WebRequests.Get<WikiApiResponse>(apiUrl, urlParams);
+			var result = await WebRequests.Get<WikiApiResponse>(apiUri, urlParams);
 			if (result.IsError)
 			{
 				return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
@@ -40,7 +46,7 @@ public class WikiProvider(IList<Uri> apiUrls) : IProvider
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Type = HistoryType.Edit,
-					Site = apiUrl.Host,
+					Site = apiUri.Host,
 					Context = edit.Title + (section != null ? " § " + section : ""),
 					Description = $"{summary} ({diffAmt})",
 				};

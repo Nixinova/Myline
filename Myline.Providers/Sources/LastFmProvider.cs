@@ -1,4 +1,6 @@
 using System.Globalization;
+using Myline.Core.Configuration;
+using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Providers.Interfaces;
@@ -8,6 +10,7 @@ namespace Myline.Providers.Sources;
 
 public class LastFmProvider : IProvider
 {
+	private static LastFmConfig Config => ConfigStore.Config.LastFmConfig;
 	private static readonly Uri ApiUrl = new("https://ws.audioscrobbler.com/2.0/");
 	private const string ApiKey = "29928f386eb7f4f024598d42628b1428";
 
@@ -20,7 +23,7 @@ public class LastFmProvider : IProvider
 		var urlParams = new Dictionary<string, string>
 		{
 			{ "method", "user.getRecentTracks" },
-			{ "user", input.Username.Value },
+			{ "user", Config.Username },
 			{ "api_key", ApiKey },
 			{ "from", fromDateUts.ToString(CultureInfo.InvariantCulture) },
 			{ "to", toDateUts.ToString(CultureInfo.InvariantCulture) },

@@ -1,3 +1,5 @@
+using Myline.Core.Configuration;
+using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Providers.Interfaces;
@@ -7,6 +9,7 @@ namespace Myline.Providers.Sources;
 
 public class GitHubProvider : IProvider
 {
+	private static GitHubConfig Config => ConfigStore.Config.GitHubConfig;
 	private static readonly Uri GitHubGraphQlUrl = new("https://api.github.com/graphql");
 	private const string ContributionsGraphQl =
 		"""
@@ -57,7 +60,7 @@ public class GitHubProvider : IProvider
 			Query = ContributionsGraphQl,
 			Variables = new
 			{
-				login = input.Username,
+				login = Config.Username,
 				from = input.DateRange.From.ToString("O"),
 				to = input.DateRange.To.ToString("O"),
 			}

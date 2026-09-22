@@ -1,3 +1,5 @@
+using Myline.Core.Configuration;
+using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Core.Utilities.Extensions;
@@ -8,15 +10,16 @@ namespace Myline.Providers.Sources;
 
 public class HowLongToBeatProvider : IProvider
 {
+	private static HltbConfig Config => ConfigStore.Config.HltbConfig;
 
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
 		var history = new List<HistoryItem>();
 
-		var apiUrl = new Uri($"https://howlongtobeat.com/api/user/{input.Username.Value}/games/list");
+		var apiUrl = new Uri($"https://howlongtobeat.com/api/user/{Config.UserId}/games/list");
 		var body = new HowLongToBeatGamesListQuery
 		{
-			UserId = int.Parse(input.Username.Value),
+			UserId = Config.UserId,
 			ToggleType = HltbQueryToggleType.MultiList,
 			Lists = [HltbQueryListType.Completed, HltbQueryListType.Replayed, HltbQueryListType.Retired],
 			Limit = 500,

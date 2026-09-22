@@ -1,3 +1,4 @@
+using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 
 namespace Myline.Providers.Interfaces;
@@ -9,6 +10,5 @@ public interface IProvider
 
 public record ProviderInput
 {
-	public required Username Username { get; init; }
 	public required DateRange DateRange { get; init; }
 }

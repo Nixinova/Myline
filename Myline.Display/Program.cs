@@ -12,10 +12,10 @@ public class Program
 {
 	static async Task Main(string[] args)
 	{
-		Configuration.Create();
+		await ConfigStore.Init();
 		WebRequests.Init();
 
-		var sourceProviders = (await CreateProviders()).ToList();
+		var sourceProviders = CreateProviders().ToList();
 		var provider = new HistoryProvider(sourceProviders);
 
 		var inputResult = ParseInput(args);
@@ -39,38 +39,29 @@ public class Program
 
 	private static Result<ProviderInput> ParseInput(string[] args)
 	{
-		if (args.Length != 3)
+		if (args.Length != 2)
 		{
-			Console.WriteLine("Usage: Myline.Display.exe <username> <fromTime> <toTime>");
+			Console.WriteLine("Usage: Myline.Display.exe <fromTime> <toTime>");
+			Console.WriteLine("Make sure to add your settings in %AppData%/Myline/Config.json before use!");
 			return Result<ProviderInput>.Fail("No arguments provided");
 		}
 
-		var username = new Username(args[0]);
-		var fromTime = DateTime.Parse(args[1]);
-		var toTime =  DateTime.Parse(args[2]);
+		var fromTime = DateTime.Parse(args[0]);
+		var toTime =  DateTime.Parse(args[1]);
 		var fromTz = TimeZoneInfo.Local.GetUtcOffset(fromTime);
 		var toTz = TimeZoneInfo.Local.GetUtcOffset(toTime);
-		fromTime = DateTime.SpecifyKind(DateTime.Parse(args[1]) - fromTz, DateTimeKind.Utc);
-		toTime = DateTime.SpecifyKind(DateTime.Parse(args[2]) - toTz,  DateTimeKind.Utc);
+		fromTime = DateTime.SpecifyKind(fromTime - fromTz, DateTimeKind.Utc);
+		toTime = DateTime.SpecifyKind(toTime - toTz,  DateTimeKind.Utc);
 		return Result<ProviderInput>.Ok(new ProviderInput
 		{
-			Username = username,
 			DateRange = new DateRange(fromTime, toTime),
 		});
 	}
 
-	private static async Task<IList<IProvider>> CreateProviders()
+	private static IEnumerable<IProvider> CreateProviders()
 	{
-		var list = new List<IProvider>();
-
-		var wikiProviderConfig = new WikiProviderConfiguration();
-		var wikiApiUrls = await wikiProviderConfig.GetWikiApiUrls();
-		list.Add(new WikiProvider(wikiApiUrls.ToList()));
-
-		list.Add(new LastFmProvider());
-
-		list.Add(new HowLongToBeatProvider());
-
-		return list;
+		yield return new HowLongToBeatProvider();
+		yield return new LastFmProvider();
+		yield return new WikiProvider();
 	}
 }
