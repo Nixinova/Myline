@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Myline.Providers.ResponseModels;
+namespace Myline.Providers.Models;
 
 public record LastFmRecentTracksResponse
 {

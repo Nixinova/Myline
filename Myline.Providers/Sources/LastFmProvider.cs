@@ -2,7 +2,7 @@ using System.Globalization;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Providers.Interfaces;
-using Myline.Providers.ResponseModels;
+using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
