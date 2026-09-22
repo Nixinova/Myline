@@ -2,14 +2,14 @@ namespace Myline.Core.Models;
 
 public class Result<TValue>
 {
-	public bool IsError { get; init; }
+	public bool IsError { get; }
 
 	public TValue Value
 	{
 		get => IsError
 			? throw new InvalidOperationException("Cannot get value of failed Result")
 			: field!;
-		init;
+		private init;
 	}
 
 	public string Error
@@ -17,7 +17,7 @@ public class Result<TValue>
 		get => IsError
 			? field!
 			: throw new InvalidOperationException("Cannot get error from successful Result");
-		init;
+		private init;
 	}
 
 	private Result(TValue? value, string? error)
@@ -35,7 +35,7 @@ public class Result<TValue>
 		else
 		{
 			IsError = true;
-			Error = error;
+			Error = error!;
 		}
 	}
 
