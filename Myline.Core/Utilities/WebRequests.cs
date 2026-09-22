@@ -15,8 +15,11 @@ public static class WebRequests
 		_client.DefaultRequestHeaders.UserAgent.ParseAdd("PersonalHistory/0.0");
 	}
 
-	public static async Task<Result<TModel?>> Get<TModel>(Uri url, Dictionary<string, string> queryParams)
+	public static async Task<Result<TModel?>> Get<TModel>(Uri url, Dictionary<string, string> queryParams, Action<HttpClient>? lambda = null)
 	{
+		Client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/1.0");
+		lambda?.Invoke(Client);
+
 		var queryParamString = "?" + string.Join("&",
 			queryParams.Select(x =>
 				HttpUtility.UrlEncode(x.Key) + "=" + HttpUtility.UrlEncode(x.Value)
@@ -40,8 +43,11 @@ public static class WebRequests
 		return Result<TModel?>.Ok(content);
 	}
 
-	public static async Task<Result<TModel?>> Post<TBody, TModel>(Uri url, TBody body)
+	public static async Task<Result<TModel?>> Post<TBody, TModel>(Uri url, TBody body, Action<HttpClient>? lambda = null)
 	{
+		Client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/1.0");
+		lambda?.Invoke(Client);
+
 		var result = await Client.PostAsJsonAsync(url, body);
 		if (!result.IsSuccessStatusCode)
 		{

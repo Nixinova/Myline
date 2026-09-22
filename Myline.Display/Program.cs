@@ -12,6 +12,7 @@ public class Program
 {
 	static async Task Main(string[] args)
 	{
+		await EnvVarStore.Init();
 		await ConfigStore.Init();
 		WebRequests.Init();
 

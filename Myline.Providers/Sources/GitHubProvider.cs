@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Myline.Core.Configuration;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
@@ -76,7 +77,7 @@ public class GitHubProvider : IProvider
 				to = input.DateRange.To.ToString("O"),
 			}
 		};
-		var result = await WebRequests.Post<GitHubContributionsQuery, GitHubContributionsResponse>(GitHubGraphQlUrl, request);
+		var result = await WebRequests.Post<GitHubContributionsQuery, GitHubContributionsResponse>(GitHubGraphQlUrl, request, GetRequestSettings());
 		if (result.IsError)
 		{
 			return Result<GitHubContributionsResponse>.Fail(result.Error);
@@ -105,7 +106,7 @@ public class GitHubProvider : IProvider
 				{ "per_page", "100" },
 				{ "page", "1" }
 			};
-			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitsResponse>>(url, queryParams);
+			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitsResponse>>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
 				return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Fail(result.Error);
@@ -119,4 +120,11 @@ public class GitHubProvider : IProvider
 
 		return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Ok(responses);
 	}
+
+	private Action<HttpClient> GetRequestSettings()
+		=> (HttpClient client) =>
+		{
+			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EnvVarStore.GitHubToken);
+
+		};
 }
