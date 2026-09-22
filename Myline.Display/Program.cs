@@ -40,15 +40,15 @@ public class Program
 
 	private static Result<ProviderInput> ParseInput(string[] args)
 	{
-		if (args.Length != 2)
+		if (args.Length is not (1 or 2))
 		{
-			Console.WriteLine("Usage: Myline.Display.exe <fromTime> <toTime>");
+			Console.WriteLine("Usage: Myline.Display.exe <fromTime> [<toTime>]");
 			Console.WriteLine("Make sure to add your settings in %AppData%/Myline/Config.json before use!");
 			return Result<ProviderInput>.Fail("No arguments provided");
 		}
 
 		var fromTime = DateTime.Parse(args[0]);
-		var toTime =  DateTime.Parse(args[1]);
+		var toTime = args.Length < 2 ? fromTime.AddDays(1) : DateTime.Parse(args[1]);
 		var fromTz = TimeZoneInfo.Local.GetUtcOffset(fromTime);
 		var toTz = TimeZoneInfo.Local.GetUtcOffset(toTime);
 		fromTime = DateTime.SpecifyKind(fromTime - fromTz, DateTimeKind.Utc);
