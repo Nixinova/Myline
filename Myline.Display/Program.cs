@@ -69,6 +69,8 @@ public class Program
 
 		list.Add(new LastFmProvider());
 
+		list.Add(new HowLongToBeatProvider());
+
 		return list;
 	}
 }
