@@ -60,6 +60,7 @@ public class Program
 
 	private static IEnumerable<IProvider> CreateProviders()
 	{
+		yield return new GitHubProvider();
 		yield return new HowLongToBeatProvider();
 		yield return new LastFmProvider();
 		yield return new WikiProvider();

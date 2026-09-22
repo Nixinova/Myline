@@ -11,7 +11,7 @@ public record GitHubContributionsResponse
 public record GitHubContributionsData
 {
 	[JsonPropertyName("user")]
-	public required GitHubUserContributionData UerData { get; init; }
+	public required GitHubUserContributionData UserData { get; init; }
 }
 
 public record GitHubUserContributionData
@@ -23,13 +23,13 @@ public record GitHubUserContributionData
 public record GitHubContributionsCollection
 {
 	[JsonPropertyName("commitContributionsByRepository")]
-	public required IList<GitHubRepoContributionsData> Data { get; init; }
+	public required IReadOnlyList<GitHubRepoContributionsData> Data { get; init; }
 }
 
 public record GitHubRepoContributionsData
 {
 	[JsonPropertyName("repository")]
-	public required IList<ContributionRepoData> Data { get; init; }
+	public required IReadOnlyList<ContributionRepoData> Data { get; init; }
 }
 
 public record ContributionRepoData

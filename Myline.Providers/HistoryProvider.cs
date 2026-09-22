@@ -14,7 +14,8 @@ public class HistoryProvider(IReadOnlyCollection<IProvider> providers) : IProvid
 			var collectionResult = await provider.CollectHistory(input);
 			if (collectionResult.IsError)
 			{
-				return Result<IReadOnlyCollection<HistoryItem>>.Fail(collectionResult.Error!);
+				Console.WriteLine($"Error ({provider}): {collectionResult.Error}");
+				continue;
 			}
 			history.AddRange(collectionResult.Value);
 		}

@@ -43,14 +43,25 @@ public class GitHubProvider : IProvider
 		{
 			return Result<IReadOnlyCollection<HistoryItem>>.Fail(contributionsResult.Error);
 		}
-		var commits = GetCommits(contributionsResult.Value);
+		var commitsResult = await GetCommits(contributionsResult.Value, input);
+		if (commitsResult.IsError)
+		{
+			return Result<IReadOnlyCollection<HistoryItem>>.Fail(commitsResult.Error);
+		}
+
+		foreach (var commit in commitsResult.Value)
+		{
+			history.Add(new HistoryItem
+			{
+				Timestamp = new Timestamp(commit.Commit.Committed.Date, TimestampPrecision.Second),
+				Site = "GitHub",
+				Type = HistoryType.Commit,
+				Context = commit.RepoOwner + "/" + commit.RepoName,
+				Description = commit.Commit.Message
+			});
+		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
-	}
-
-	private object GetCommits(GitHubContributionsResponse contributions)
-	{
-		throw new NotImplementedException();
 	}
 
 	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input)
@@ -75,5 +86,37 @@ public class GitHubProvider : IProvider
 			return Result<GitHubContributionsResponse>.Fail("No response");
 		}
 		return Result<GitHubContributionsResponse>.Ok(result.Value);
+	}
+
+	private async Task<Result<IReadOnlyCollection<GitHubCommitsResponse>>> GetCommits(GitHubContributionsResponse contributions, ProviderInput input)
+	{
+		var responses = new List<GitHubCommitsResponse>();
+
+		var repos = contributions.Data.UserData.Contributions.Data
+			.SelectMany(x => x.Data);
+		foreach (var repo in repos)
+		{
+			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/commits");
+			var queryParams = new Dictionary<string, string>
+			{
+				{ "author", Config.Username },
+				{ "since", input.DateRange.From.ToString("O") },
+				{ "until", input.DateRange.To.ToString("O") },
+				{ "per_page", "100" },
+				{ "page", "1" }
+			};
+			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitsResponse>>(url, queryParams);
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Fail(result.Error);
+			}
+
+			if (result.Value != null)
+			{
+				responses.AddRange(result.Value);
+			}
+		}
+
+		return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Ok(responses);
 	}
 }
