@@ -42,7 +42,7 @@ public class HowLongToBeatProvider : IProvider
 			{
 				Timestamp = timestamp,
 				Site = "HowLongToBeat",
-				Type = HistoryType.Game,
+				Action = "Played",
 				Context = entry.GameName,
 				Description = GetDesc(entry)
 			});

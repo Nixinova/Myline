@@ -11,8 +11,8 @@ public static class CliDisplay
 		{
 			var line = (
 				"[" + item.FormattedTimestamp.PadRight(20, ' ') + "] "
-				+ item.Site.PadRight(20, ' ')
-				+ (item.Type + ": ").PadRight(10, ' ')
+				+ item.Site.PadRight(20, ' ') + " "
+				+ item.Action + " "
 				+ item.Context + " - "
 				+ item.Description
 			).RegexReplace(@"[\t\r\n]", " ");

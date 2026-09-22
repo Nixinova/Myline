@@ -56,7 +56,7 @@ public class GitHubProvider : IProvider
 			{
 				Timestamp = new Timestamp(commit.Commit.Committed.Date, TimestampPrecision.Second),
 				Site = "GitHub",
-				Type = HistoryType.Commit,
+				Action = "Committed to",
 				Context = commit.RepoOwner + "/" + commit.RepoName,
 				Description = commit.Commit.Message
 			});
@@ -125,6 +125,5 @@ public class GitHubProvider : IProvider
 		=> (HttpClient client) =>
 		{
 			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EnvVarStore.GitHubToken);
-
 		};
 }

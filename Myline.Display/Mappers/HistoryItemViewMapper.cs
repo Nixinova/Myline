@@ -13,8 +13,8 @@ public static class HistoryItemViewMapper
 			{
 				Sortkey = item.Timestamp.Time.Ticks,
 				FormattedTimestamp = CreateTimestamp(item.Timestamp),
-				Type = item.Type.ToString(),
 				Site = item.Site,
+				Action = item.Action,
 				Context = item.Context,
 				Description = item.Description,
 			}

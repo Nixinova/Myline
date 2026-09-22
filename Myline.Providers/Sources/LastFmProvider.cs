@@ -42,8 +42,8 @@ public class LastFmProvider : IProvider
 			var historyItem = new HistoryItem
 			{
 				Timestamp = new Timestamp(DateTime.SpecifyKind(date, DateTimeKind.Utc), TimestampPrecision.Second),
-				Type = HistoryType.Listen,
 				Site = "Last.fm",
+				Action = "Listened to",
 				Context = track.Artist.Value,
 				Description = track.Song,
 			};

@@ -46,8 +46,8 @@ public class WikiProvider : IProvider
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
-					Type = HistoryType.Edit,
 					Site = apiUri.Host,
+					Action = "Edited",
 					Context = edit.Title + (section != null ? " § " + section : ""),
 					Description = $"{summary} ({diffAmt})",
 				};
