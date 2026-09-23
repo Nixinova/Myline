@@ -36,16 +36,30 @@ public class HowLongToBeatProvider : IProvider
 
 		foreach (var entry in gamesList)
 		{
-			var timestamp = GetTimestamp(entry);
-
-			history.Add(new HistoryItem
+			if (input.DateRange.Contains(entry.DateAdded))
 			{
-				Timestamp = timestamp,
-				Site = "HowLongToBeat",
-				Action = "Played",
-				Context = entry.GameName,
-				Description = GetDesc(entry)
-			});
+				history.Add(new HistoryItem
+				{
+					Timestamp = new Timestamp(entry.DateAdded, TimestampPrecision.Second),
+					Site = "HowLongToBeat",
+					Action = "Logged",
+					Context = entry.GameName,
+					Description = GetDesc(entry)
+				});
+			}
+			if (entry.DateCompleted != null && input.DateRange.Contains(entry.DateCompleted.Value))
+			{
+				history.Add(new HistoryItem
+				{
+					Timestamp = DateOnly.FromDateTime(entry.DateUpdated.Date) == entry.DateCompleted.Value
+						? new Timestamp(entry.DateUpdated, TimestampPrecision.Second)
+						: new Timestamp(entry.DateCompleted.Value, TimestampPrecision.Day),
+					Site = "HowLongToBeat",
+					Action = GetVerb(entry),
+					Context = entry.GameName,
+					Description = GetDesc(entry)
+				});
+			}
 		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
@@ -58,32 +72,20 @@ public class HowLongToBeatProvider : IProvider
 		       entry.DateCompleted != null && dateRange.Contains(entry.DateCompleted.Value);
 	}
 
-	private static Timestamp GetTimestamp(HltbGameEntry entry)
+	private static string GetVerb(HltbGameEntry entry)
 	{
-		var dateAdded = new Timestamp(entry.DateAdded, TimestampPrecision.Second);
-		if (entry.DateCompleted == null ||
-		    DateOnly.FromDateTime(entry.DateAdded.Date) == entry.DateCompleted)
-		{
-			return dateAdded;
-		}
-
-		return new Timestamp(
-			new DateTime(entry.DateCompleted.Value.Year, entry.DateCompleted.Value.Month, entry.DateCompleted.Value.Day),
-			TimestampPrecision.Day
-		);
-	}
-
-	private static string GetDesc(HltbGameEntry entry)
-	{
-		var verb = "";
+		string? verb = null;
 		if (entry.InListCompleted) verb = "Completed";
 		if (entry.InListPlaying) verb = "Playing";
 		if (entry.InListBacklog) verb = "Backlogged";
 		if (entry.InListReplay) verb = "Replayed";
 		if (entry.InListRetired) verb = "Retired";
+		return verb ?? "Played";
+	}
+
+	private static string GetDesc(HltbGameEntry entry)
+	{
 		return string.Join(" ", [
-			verb,
-			"-",
 			entry.Platform,
 			string.IsNullOrWhiteSpace(entry.Storefront) ? "" : $"({entry.Storefront})",
 			string.IsNullOrWhiteSpace(entry.PlayNotes) ? "" : "- " + entry.PlayNotes,
