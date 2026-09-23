@@ -2,7 +2,7 @@ namespace Myline.Repository.Database;
 
 public static class DataStore
 {
-	private static Database _database = null!;
+	public static Database Database { get; private set; } = null!;
 
 	private const string DbInitCmd =
 		"""
@@ -15,7 +15,8 @@ public static class DataStore
 
 		create table if not exists Cached (
 			Site text not null,
-			Date text not null
+			Date text not null,
+			primary key (Site, Date)
 		);
 
 		create index if not exists idx_History_Timestamp
@@ -33,9 +34,9 @@ public static class DataStore
 
 	public static async Task Init()
 	{
-		_database = new Database();
+		Database = new Database();
 
-		await using var connection = _database.CreateConnection();
+		await using var connection = Database.CreateConnection();
 		await connection.OpenAsync();
 
 		await using var command = connection.CreateCommand();
