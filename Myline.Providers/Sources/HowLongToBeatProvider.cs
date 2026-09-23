@@ -2,7 +2,6 @@ using Myline.Core.Configuration;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
-using Myline.Core.Utilities.Extensions;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
@@ -36,7 +35,8 @@ public class HowLongToBeatProvider : IProvider
 
 		foreach (var entry in gamesList)
 		{
-			if (input.DateRange.Contains(entry.DateAdded))
+			if (input.DateRange.Contains(entry.DateAdded) &&
+			    DateOnly.FromDateTime(entry.DateAdded) != entry.DateCompleted)
 			{
 				history.Add(new HistoryItem
 				{
@@ -44,7 +44,8 @@ public class HowLongToBeatProvider : IProvider
 					Site = "HowLongToBeat",
 					Action = "Logged",
 					Context = entry.GameName,
-					Description = GetDesc(entry)
+					Description = entry.Platform +
+					              (string.IsNullOrWhiteSpace(entry.Storefront) ? "" : $" ({entry.Storefront})")
 				});
 			}
 			if (entry.DateCompleted != null && input.DateRange.Contains(entry.DateCompleted.Value))
@@ -85,11 +86,22 @@ public class HowLongToBeatProvider : IProvider
 
 	private static string GetDesc(HltbGameEntry entry)
 	{
-		return string.Join(" ", [
+		var notes = string.Join(" | ", new[]
+		{
+			entry.PlayNotes,
+			string.IsNullOrWhiteSpace(entry.ReviewNotes) && entry.ReviewScore == 0 ? "" : $"{entry.ReviewScore / 10}/10 {entry.ReviewNotes}".Trim(),
+			entry.CompMainNotes,
+			entry.CompMainPlusNotes,
+			entry.Comp100Notes,
+			entry.CompSpeedNotes,
+			entry.CompSpeed100Notes,
+		}.Where(x => !string.IsNullOrWhiteSpace(x)));
+		return string.Join(" ", new[]
+		{
 			entry.Platform,
 			string.IsNullOrWhiteSpace(entry.Storefront) ? "" : $"({entry.Storefront})",
-			string.IsNullOrWhiteSpace(entry.PlayNotes) ? "" : "- " + entry.PlayNotes,
-			string.IsNullOrWhiteSpace(entry.ReviewNotes) ? "" : "- " + entry.ReviewNotes,
-		]).RegexReplace(@"\s+", " ");
+			entry.DateCompleted == null || entry.CompletionTimeMain == null ? "" : "- " + entry.CompletionTimeMain.ToString(),
+			string.IsNullOrWhiteSpace(notes) ? "" : $"| {notes}"
+		}.Where(x => !string.IsNullOrWhiteSpace(x)));
 	}
 }
