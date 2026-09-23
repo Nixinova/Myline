@@ -53,21 +53,9 @@ public class HowLongToBeatProvider : IProvider
 
 	private static bool IsEntryWithinDateRange(HltbGameEntry entry, DateRange dateRange)
 	{
-		var dates = new List<DateTime> { entry.DateAdded };
-		if (entry.DateCompleted != null)
-		{
-			dates.Add(
-				new DateTime(entry.DateCompleted.Value.Year, entry.DateCompleted.Value.Month, entry.DateCompleted.Value.Day)
-			);
-		}
-
-		var minDate = dates.Min();
-		var maxDate = dates.Max();
-
-		return minDate < dateRange.To &&
-		       maxDate > dateRange.From &&
-		       minDate < dateRange.To &&
-		       maxDate > dateRange.From;
+		return dateRange.Contains(entry.DateAdded) ||
+		       dateRange.Contains(entry.DateUpdated) ||
+		       entry.DateCompleted != null && dateRange.Contains(entry.DateCompleted.Value);
 	}
 
 	private static Timestamp GetTimestamp(HltbGameEntry entry)
