@@ -8,50 +8,70 @@ public record WikiApiResponse
 	public string BatchComplete { get; init; } = "";
 
 	[JsonPropertyName("query")]
-	public WikiContributionsQuery Query { get; init; } = new();
+	public WikiQueryResponse Query { get; init; } = new();
 }
 
-public record WikiContributionsQuery
+public record WikiQueryResponse
 {
 	[JsonPropertyName("usercontribs")]
-	public WikiContribution[] UserContributions { get; init; } = [];
+	public WikiContribution[]? UserContributions { get; init; } = [];
+
+	[JsonPropertyName("logevents")]
+	public WikiLogEvent[]? LogEvents { get; init; } = [];
 }
 
-public record WikiContribution
+public interface IWikiEvent
 {
-	[JsonPropertyName("userid")]
-	public required long UserId { get; init; }
+	public string Title { get; }
+	public DateTime Timestamp { get; }
+	public string Comment { get; }
+}
 
-	[JsonPropertyName("user")]
-	public required string Username { get; init; }
-
-	[JsonPropertyName("pageid")]
-	public required long PageId { get; init; }
-
-	[JsonPropertyName("revid")]
-	public required long RevisionId { get; init; }
-
-	[JsonPropertyName("parentid")]
-	public required long ParentId { get; init; }
-
-	[JsonPropertyName("ns")]
-	public required long NamespaceId { get; init; }
-
+public record WikiContribution : IWikiEvent
+{
 	[JsonPropertyName("title")]
 	public required string Title { get; init; }
 
 	[JsonPropertyName("timestamp")]
 	public required DateTime Timestamp { get; init; }
 
-	[JsonPropertyName("top")]
-	public string? Top { get; init; }
+	[JsonPropertyName("comment")]
+	public required string Comment { get; init; }
+
+	[JsonPropertyName("sizediff")]
+	public required long SizeDiff { get; init; }
+
+	// int userid
+	// string user
+	// int pageid
+	// int revid
+	// int parentid
+	// int ns
+	// string? top
+	// int size
+}
+
+public record WikiLogEvent : IWikiEvent
+{
+	[JsonPropertyName("title")]
+	public required string Title { get; init; }
+
+	[JsonPropertyName("timestamp")]
+	public required DateTime Timestamp { get; init; }
 
 	[JsonPropertyName("comment")]
 	public required string Comment { get; init; }
 
-	[JsonPropertyName("size")]
-	public required long Size { get; init; }
+	[JsonPropertyName("type")]
+	public required string Type { get; init; }
 
-	[JsonPropertyName("sizediff")]
-	public required long SizeDiff { get; init; }
+	[JsonPropertyName("action")]
+	public required string Action { get; init; }
+
+	// int logid
+	// int ns
+	// string user
+	// int pageid
+	// int logpage
+	// object params
 }
