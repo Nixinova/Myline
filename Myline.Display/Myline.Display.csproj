@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Myline.Providers\Myline.Providers.csproj" />
     <ProjectReference Include="..\Myline.Core\Myline.Core.csproj" />
+    <ProjectReference Include="..\Myline.Repository\Myline.Repository.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

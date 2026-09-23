@@ -5,6 +5,7 @@ using Myline.Display.Mappers;
 using Myline.Providers;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Sources;
+using Myline.Repository.Database;
 
 namespace Myline.Display;
 
@@ -14,6 +15,7 @@ public class Program
 	{
 		await EnvVarStore.Init();
 		await ConfigStore.Init();
+		await DataStore.Init();
 		WebRequests.Init();
 
 		var sourceProviders = CreateProviders().ToList();
