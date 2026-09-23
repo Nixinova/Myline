@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Myline.Core.Common;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Utilities;
 
@@ -6,17 +7,16 @@ namespace Myline.Core.Configuration;
 
 public static class ConfigStore
 {
-	public static Config Config = new();
+	public static Config Config { get; private set; } = new();
 
-	private static readonly string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-	private static readonly string ConfigFolder = Path.Combine(AppData, "Myline");
-	private static readonly string ConfigFilePath = Path.Combine(ConfigFolder, "Config.json");
+	private static readonly string ConfigFilePath = Path.Combine(AppData.DataFolder, "Config.json");
 
 	public static async Task Init()
 	{
-		if (!Directory.Exists(ConfigFolder))
+		var folder = Path.GetDirectoryName(ConfigFilePath)!;
+		if (!Directory.Exists(folder))
 		{
-			Directory.CreateDirectory(ConfigFolder);
+			Directory.CreateDirectory(folder);
 		}
 		if (!File.Exists(ConfigFilePath))
 		{
