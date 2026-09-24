@@ -36,7 +36,7 @@ public class LastFmProvider : IProvider
 			var date = DateTimeOffset.FromUnixTimeSeconds(uts).DateTime;
 			var historyItem = new HistoryItem
 			{
-				Timestamp = new Timestamp(DateTime.SpecifyKind(date, DateTimeKind.Utc), TimestampPrecision.Second),
+				Timestamp = new Timestamp(date, TimestampPrecision.Second),
 				Site = "Last.fm",
 				Description = $"Listened to {track.Song} by {track.Artist.Value}" +
 				              track.Album.Value.IfNotEmpty(x => $" from {x}")

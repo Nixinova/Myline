@@ -4,12 +4,13 @@ namespace Myline.Core.Models;
 
 public class Timestamp
 {
+	/// UTC date and time
 	public DateTime Time { get; }
 	public TimestampPrecision Precision { get; }
 
 	public Timestamp(DateTime time, TimestampPrecision precision)
 	{
-		Time = time;
+		Time = DateTime.SpecifyKind(time, DateTimeKind.Utc);
 		Precision = precision;
 	}
 
@@ -19,22 +20,20 @@ public class Timestamp
 		{
 			throw new InvalidOperationException("Invalid timestamp precision");
 		}
-		Time = new DateTime(date.Year, date.Month, date.Day);
+		Time = DateTime.SpecifyKind(new DateTime(date.Year, date.Month, date.Day), DateTimeKind.Utc);
 		Precision = precision;
 	}
 
 	public override string ToString()
 	{
-		var tzOffset = TimeZoneInfo.Local.GetUtcOffset(Time);
-		var time = DateTime.SpecifyKind(Time + tzOffset, DateTimeKind.Local);
 		return Precision switch
 		{
-			TimestampPrecision.Year => time.Year.ToString(),
-			TimestampPrecision.Month => time.ToString("yyyy-MM", CultureInfo.InvariantCulture),
-			TimestampPrecision.Day => time.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-			TimestampPrecision.Hour => time.ToString("yyyy-MM-dd HH", CultureInfo.InvariantCulture),
-			TimestampPrecision.Minute => time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
-			TimestampPrecision.Second => time.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+			TimestampPrecision.Year => Time.Year.ToString(),
+			TimestampPrecision.Month => Time.ToString("yyyy-MM", CultureInfo.InvariantCulture),
+			TimestampPrecision.Day => Time.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+			TimestampPrecision.Hour => Time.ToString("yyyy-MM-dd HH", CultureInfo.InvariantCulture),
+			TimestampPrecision.Minute => Time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+			TimestampPrecision.Second => Time.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
 			_ => ""
 		};
 	}

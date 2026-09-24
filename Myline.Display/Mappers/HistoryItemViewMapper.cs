@@ -23,7 +23,7 @@ public static class HistoryItemViewMapper
 	{
 		var tzOffset = TimeZoneInfo.Local.GetUtcOffset(timestamp.Time);
 		var time = DateTime.SpecifyKind(timestamp.Time + tzOffset, DateTimeKind.Local);
-		return (timestamp.Precision switch
+		var timestampText = timestamp.Precision switch
 		{
 			TimestampPrecision.Year => time.Year.ToString(),
 			TimestampPrecision.Month => time.ToString("yyyy-MMM", CultureInfo.InvariantCulture),
@@ -32,6 +32,14 @@ public static class HistoryItemViewMapper
 			TimestampPrecision.Minute => time.ToString("yyyy-MMM-dd HH:mm", CultureInfo.InvariantCulture),
 			TimestampPrecision.Second => time.ToString("yyyy-MMM-dd HH:mm:ss", CultureInfo.InvariantCulture),
 			_ => ""
-		});
+		};
+		var suffix = time.Kind switch
+		{
+			DateTimeKind.Utc => "Z",
+			DateTimeKind.Local => "",
+			DateTimeKind.Unspecified => " ",
+			_ => "?"
+		};
+		return timestampText + suffix;
 	}
 }
