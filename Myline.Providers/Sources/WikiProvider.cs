@@ -53,7 +53,7 @@ public class WikiProvider : IProvider
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
-					Site = apiUri.Host,
+					Site = GuessWikiName(apiUri.Host),
 					Description = $"{action} {pageText} - {summary}"
 				};
 				history.Add(historyItem);
@@ -178,5 +178,16 @@ public class WikiProvider : IProvider
 			"thank" => "Thanked",
 			_ => action
 		};
+	}
+
+	private static string GuessWikiName(string domain)
+	{
+		var name = domain.Split(".").First(x => x.Length > 2); // first non-lang code part
+		if (!name.Contains("wik") && !name.Contains("pedia"))
+		{
+			name += " Wiki";
+		}
+		name = name[..1].ToUpper() + name[1..];
+		return name;
 	}
 }
