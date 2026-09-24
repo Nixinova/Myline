@@ -55,6 +55,7 @@ public class Program
 		var toTz = TimeZoneInfo.Local.GetUtcOffset(toTime);
 		fromTime = DateTime.SpecifyKind(fromTime - fromTz, DateTimeKind.Utc);
 		toTime = DateTime.SpecifyKind(toTime - toTz,  DateTimeKind.Utc);
+		if (toTime > DateTime.UtcNow) toTime = DateTime.UtcNow;
 		return Result<ProviderInput>.Ok(new ProviderInput
 		{
 			DateRange = new DateRange(fromTime, toTime),

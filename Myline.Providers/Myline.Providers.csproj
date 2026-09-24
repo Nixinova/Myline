@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Myline.Core\Myline.Core.csproj" />
+    <ProjectReference Include="..\Myline.Repository\Myline.Repository.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
