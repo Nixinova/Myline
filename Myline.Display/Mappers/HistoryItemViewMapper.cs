@@ -14,8 +14,6 @@ public static class HistoryItemViewMapper
 				Sortkey = item.Timestamp.Time.Ticks,
 				FormattedTimestamp = CreateTimestamp(item.Timestamp),
 				Site = item.Site,
-				Action = item.Action,
-				Context = item.Context,
 				Description = item.Description,
 			}
 		).ToList();

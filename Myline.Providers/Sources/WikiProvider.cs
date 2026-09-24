@@ -43,18 +43,18 @@ public class WikiProvider : IProvider
 				}
 
 				var (section, summary) = ParseEditSummary(edit);
+				var action = edit switch
+				{
+					WikiContribution => "Edited",
+					WikiLogEvent le => MapAction(le.Action),
+					_ => "Affected"
+				};
+				var pageText = edit.Title + section.IfNotEmpty(x => $" § {x}");
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Site = apiUri.Host,
-					Action = edit switch
-					{
-						WikiContribution => "Edited",
-						WikiLogEvent le => MapAction(le.Action),
-						_ => "Affected"
-					},
-					Context = edit.Title + (section != null ? " § " + section : ""),
-					Description = summary
+					Description = $"{action} {pageText} - {summary}"
 				};
 				history.Add(historyItem);
 			}

@@ -61,9 +61,11 @@ public class GitHubProvider : IProvider
 			{
 				Timestamp = new Timestamp(commit.Commit.Committed.Date, TimestampPrecision.Second),
 				Site = "GitHub",
-				Action = "Committed to",
-				Context = commit.RepoOwner + "/" + commit.RepoName,
-				Description = commit.Commit.Message
+				Description =
+					"Committed to " +
+					commit.RepoOwner + "/" + commit.RepoName +
+					" - " +
+					commit.Commit.Message
 			});
 		}
 

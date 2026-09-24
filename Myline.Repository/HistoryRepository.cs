@@ -6,8 +6,6 @@ namespace Myline.Repository;
 
 public static class HistoryRepository
 {
-	private const char UnitDelimiter = '\x1F';
-
 	public static async Task<IReadOnlyList<HistoryItem>> GetHistoryForSiteWithinRange(string site, DateRange dateRange)
 	{
 		await using var connection = DataStore.Database.CreateConnection();
@@ -30,17 +28,11 @@ public static class HistoryRepository
 		{
 			var timestamp = Timestamp.FromString(reader.GetString(0));
 			var description = reader.GetString(1);
-			var descParts =  description.Split(UnitDelimiter);
-			var action = descParts[0];
-			var context = descParts[1];
-			var summary = descParts[2];
 			entries.Add(new HistoryItem
 			{
 				Timestamp = timestamp,
 				Site = site,
-				Action = action,
-				Context = context,
-				Description = summary
+				Description = description
 			});
 		}
 
@@ -70,8 +62,7 @@ public static class HistoryRepository
 		{
 			command.Parameters["@time"].Value = item.Timestamp.ToString();
 			command.Parameters["@site"].Value = item.Site;
-			command.Parameters["@desc"].Value = string.Join(UnitDelimiter,
-				new[] { item.Action, item.Context, item.Description });
+			command.Parameters["@desc"].Value = item.Description;
 			await command.ExecuteNonQueryAsync();
 		}
 

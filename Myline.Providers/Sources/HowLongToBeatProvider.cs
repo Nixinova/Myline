@@ -2,6 +2,7 @@ using Myline.Core.Configuration;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
+using Myline.Core.Utilities.Extensions;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
@@ -34,14 +35,12 @@ public class HowLongToBeatProvider : IProvider
 			if (input.DateRange.Contains(entry.DateAdded) &&
 			    DateOnly.FromDateTime(entry.DateAdded) != entry.DateCompleted)
 			{
+				var playedOn = entry.Platform + entry.Storefront.IfNotEmpty(x => $" ({x})");
 				history.Add(new HistoryItem
 				{
 					Timestamp = new Timestamp(entry.DateAdded, TimestampPrecision.Second),
 					Site = "HowLongToBeat",
-					Action = "Logged",
-					Context = entry.GameName,
-					Description = entry.Platform +
-					              (string.IsNullOrWhiteSpace(entry.Storefront) ? "" : $" ({entry.Storefront})")
+					Description = $"Logged {entry.GameName} - {playedOn}"
 				});
 			}
 			if (entry.DateCompleted != null && input.DateRange.Contains(entry.DateCompleted.Value))
@@ -52,9 +51,7 @@ public class HowLongToBeatProvider : IProvider
 						? new Timestamp(entry.DateUpdated, TimestampPrecision.Second)
 						: new Timestamp(entry.DateCompleted.Value, TimestampPrecision.Day),
 					Site = "HowLongToBeat",
-					Action = GetVerb(entry),
-					Context = entry.GameName,
-					Description = GetDesc(entry)
+					Description = $"{GetVerb(entry)} {entry.GameName} - {GetDesc(entry)}"
 				});
 			}
 		}
@@ -114,9 +111,9 @@ public class HowLongToBeatProvider : IProvider
 		return string.Join(" ", new[]
 		{
 			entry.Platform,
-			string.IsNullOrWhiteSpace(entry.Storefront) ? "" : $"({entry.Storefront})",
+			entry.Storefront.IfNotEmpty(x => $"({x})"),
 			entry.DateCompleted == null || entry.CompletionTimeMain == null ? "" : "- " + entry.CompletionTimeMain.ToString(),
-			string.IsNullOrWhiteSpace(notes) ? "" : $"| {notes}"
+			notes.IfNotEmpty(x => $"| {x}")
 		}.Where(x => !string.IsNullOrWhiteSpace(x)));
 	}
 }

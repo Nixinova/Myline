@@ -9,4 +9,9 @@ public static class StringExtensions
 	{
 		return Regex.Replace(str, match, replacement);
 	}
+
+	public static string IfNotEmpty(this string? str, Func<string, string> func)
+	{
+		return string.IsNullOrWhiteSpace(str) ? "" : func(str);
+	}
 }

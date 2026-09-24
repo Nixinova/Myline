@@ -12,8 +12,6 @@ public static class CliDisplay
 			var line = (
 				"[" + item.FormattedTimestamp.PadRight(20, ' ') + "] "
 				+ item.Site.PadRight(20, ' ') + " "
-				+ item.Action + " "
-				+ item.Context + " - "
 				+ item.Description
 			).RegexReplace(@"[\t\r\n]", " ");
 			if (line.Length > Console.WindowWidth)
