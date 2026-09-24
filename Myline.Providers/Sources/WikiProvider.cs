@@ -54,7 +54,7 @@ public class WikiProvider : IProvider
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Site = GuessWikiName(apiUri.Host),
-					Description = $"{action} {pageText} - {summary}"
+					Description = $"{action} {pageText}{summary.IfNotEmpty(x => " - " + x)}"
 				};
 				history.Add(historyItem);
 			}
@@ -124,6 +124,11 @@ public class WikiProvider : IProvider
 
 	private static (string? Section, string Summary) ParseEditSummary(IWikiEvent item)
 	{
+		if (item is WikiLogEvent { Action: "patrol" or "thank" })
+		{
+			return (null, "");
+		}
+
 		const string noSummary = "(no summary)";
 		const string inernalLinkRegex = @"\[\[(?:.+?\|)?(.+?)\]\]";
 		const string sectionSummaryRegex = @"^/\*\s*(.+?)\s*\*/\s*";
@@ -171,7 +176,7 @@ public class WikiProvider : IProvider
 			"block" => "Blocked",
 			"reblock" => "Reblocked",
 			"unblock" => "Unblocked",
-			"patrol" => "Patrolled",
+			"patrol" => "Patrolled edit to",
 			"rights" => "Modified rights for",
 			"merge" => "Merged",
 			"create" => "Created",
