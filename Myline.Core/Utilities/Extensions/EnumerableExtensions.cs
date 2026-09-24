@@ -2,17 +2,27 @@ namespace Myline.Core.Utilities.Extensions;
 
 public static class EnumerableExtensions
 {
-	public static T SafeMax<T>(this IEnumerable<T> list)
-		where T : notnull
+	public static T? SafeMax<T>(this IEnumerable<T> list)
 	{
-		// T?[].Max doesn't throw; T[].Max does
-		return list.Cast<T?>().Max()!;
+		try
+		{
+			return list.Max();
+		}
+		catch (Exception)
+		{
+			return default;
+		}
 	}
 
-	public static T SafeMin<T>(this IEnumerable<T> list)
-		where T : notnull
+	public static T? SafeMin<T>(this IEnumerable<T> list)
 	{
-		// T?[].Min doesn't throw; T[].Min does
-		return list.Cast<T?>().Min()!;
+		try
+		{
+			return list.Min();
+		}
+		catch (Exception)
+		{
+			return default;
+		}
 	}
 }
