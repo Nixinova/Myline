@@ -32,6 +32,7 @@ public class LastFmProvider : IProvider
 
 		foreach (var track in responses.SelectMany(x => x.RecentTracks.Tracks))
 		{
+			if (track.Date is null) continue; // Skip 'Now playing'
 			var uts = long.Parse(track.Date.UnixTimeSeconds);
 			var date = DateTimeOffset.FromUnixTimeSeconds(uts).DateTime;
 			var historyItem = new HistoryItem

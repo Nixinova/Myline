@@ -19,8 +19,9 @@ public record LastFmRecentTracks
 
 public record LastFmTrack
 {
+	/// Null if now playing
 	[JsonPropertyName("date")]
-	public required LastFmDate Date { get; init; }
+	public LastFmDate? Date { get; init; }
 
 	[JsonPropertyName("url")]
 	public required string Url { get; init; }
