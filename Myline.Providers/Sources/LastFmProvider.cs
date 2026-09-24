@@ -18,24 +18,18 @@ public class LastFmProvider : IProvider
 	{
 		var history = new List<HistoryItem>();
 
-		var fromDateUts = new DateTimeOffset(input.DateRange.From).ToUnixTimeSeconds();
-		var toDateUts = new DateTimeOffset(input.DateRange.To).ToUnixTimeSeconds();
-		var urlParams = new Dictionary<string, string>
+		var responses = new List<LastFmRecentTracksResponse>();
+		foreach(var username in Config.Usernames)
 		{
-			{ "method", "user.getRecentTracks" },
-			{ "user", Config.Username },
-			{ "api_key", ApiKey },
-			{ "from", fromDateUts.ToString(CultureInfo.InvariantCulture) },
-			{ "to", toDateUts.ToString(CultureInfo.InvariantCulture) },
-			{ "limit", "200" },
-			{ "format", "json" },
-		};
-		var result = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
-		if (result.IsError)
-		{
-			return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+			var result = await GetPlaysForUser(input, username);
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+			}
+			responses.Add(result.Value);
 		}
-		foreach (var track in result.Value?.RecentTracks.Tracks ?? [])
+
+		foreach (var track in responses.SelectMany(x => x.RecentTracks.Tracks))
 		{
 			var uts = long.Parse(track.Date.UnixTimeSeconds);
 			var date = DateTimeOffset.FromUnixTimeSeconds(uts).DateTime;
@@ -51,5 +45,27 @@ public class LastFmProvider : IProvider
 		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+	}
+
+	private async Task<Result<LastFmRecentTracksResponse>> GetPlaysForUser(ProviderInput input, string username)
+	{
+		var fromDateUts = new DateTimeOffset(input.DateRange.From).ToUnixTimeSeconds();
+		var toDateUts = new DateTimeOffset(input.DateRange.To).ToUnixTimeSeconds();
+		var urlParams = new Dictionary<string, string>
+		{
+			{ "method", "user.getRecentTracks" },
+			{ "user", username },
+			{ "api_key", ApiKey },
+			{ "from", fromDateUts.ToString(CultureInfo.InvariantCulture) },
+			{ "to", toDateUts.ToString(CultureInfo.InvariantCulture) },
+			{ "limit", "200" },
+			{ "format", "json" },
+		};
+		var result = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
+		if (result.IsError)
+		{
+			return Result<LastFmRecentTracksResponse>.Fail(result.Error);
+		}
+		return Result<LastFmRecentTracksResponse>.Ok(result.Value!);
 	}
 }

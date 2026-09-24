@@ -20,21 +20,20 @@ public class WikiProvider : IProvider
 		foreach (var apiUrl in Config.ApiUrls)
 		{
 			var apiUri = new Uri(apiUrl);
-			var username = Config.UsernamesPerWikiDomain[apiUri.Host];
+			var usernames = Config.UsernamesPerWikiDomain[apiUri.Host];
 
-			var contribsResult = await GetContributions(apiUri, input, username);
-			if (contribsResult.IsError)
+			var wikiEvents = new List<IWikiEvent>();
+			foreach (var username in usernames)
 			{
-				Console.WriteLine($"Error ({apiUri.Host}): {contribsResult.Error}");
-				continue;
+				var wikiEventsResult = await GetWikiEvents(apiUri, input, username);
+				if (wikiEventsResult.IsError)
+				{
+					Console.WriteLine($"Error ({apiUri.Host}): {wikiEventsResult.Error}");
+					continue;
+				}
+				wikiEvents.AddRange(wikiEventsResult.Value);
 			}
-			var logsResult = await GetLogs(apiUri, input, username);
-			if (logsResult.IsError)
-			{
-				Console.WriteLine($"Error ({apiUri.Host}): {logsResult.Error}");
-				continue;
-			}
-			List<IWikiEvent> wikiEvents = [.. contribsResult.Value, .. logsResult.Value];
+
 			foreach (var edit in wikiEvents)
 			{
 				if (edit is WikiLogEvent { Type: "create" or "upload" })
@@ -62,6 +61,21 @@ public class WikiProvider : IProvider
 		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+	}
+
+	private async Task<Result<IReadOnlyList<IWikiEvent>>> GetWikiEvents(Uri apiUri, ProviderInput input, string username)
+	{
+		var contribsResult = await GetContributions(apiUri, input, username);
+		if (contribsResult.IsError)
+		{
+			return Result<IReadOnlyList<IWikiEvent>>.Fail(contribsResult.Error);
+		}
+		var logsResult = await GetLogs(apiUri, input, username);
+		if (logsResult.IsError)
+		{
+			return Result<IReadOnlyList<IWikiEvent>>.Fail(contribsResult.Error);
+		}
+		return Result<IReadOnlyList<IWikiEvent>>.Ok([.. contribsResult.Value, .. logsResult.Value]);
 	}
 
 	private static async Task<Result<IReadOnlyList<IWikiEvent>>> GetContributions(Uri apiUri, ProviderInput input, string username)

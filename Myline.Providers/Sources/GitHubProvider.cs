@@ -39,18 +39,23 @@ public class GitHubProvider : IProvider
 	{
 		var history = new List<HistoryItem>();
 
-		var contributionsResult = await GetContributions(input);
-		if (contributionsResult.IsError)
+		var commits = new List<GitHubCommitsResponse>();
+		foreach (var username in Config.Usernames)
 		{
-			return Result<IReadOnlyCollection<HistoryItem>>.Fail(contributionsResult.Error);
-		}
-		var commitsResult = await GetCommits(contributionsResult.Value, input);
-		if (commitsResult.IsError)
-		{
-			return Result<IReadOnlyCollection<HistoryItem>>.Fail(commitsResult.Error);
+			var contributionsResult = await GetContributions(input, username);
+			if (contributionsResult.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(contributionsResult.Error);
+			}
+			var commitsResult = await GetCommits(contributionsResult.Value, input, username);
+			if (commitsResult.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(commitsResult.Error);
+			}
+			commits.AddRange(commitsResult.Value);
 		}
 
-		foreach (var commit in commitsResult.Value)
+		foreach (var commit in commits)
 		{
 			history.Add(new HistoryItem
 			{
@@ -65,14 +70,14 @@ public class GitHubProvider : IProvider
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
 	}
 
-	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input)
+	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
 	{
 		var request = new GitHubContributionsQuery
 		{
 			Query = ContributionsGraphQl,
 			Variables = new
 			{
-				login = Config.Username,
+				login = username,
 				from = input.DateRange.From.ToString("O"),
 				to = input.DateRange.To.ToString("O"),
 			}
@@ -89,7 +94,7 @@ public class GitHubProvider : IProvider
 		return Result<GitHubContributionsResponse>.Ok(result.Value);
 	}
 
-	private async Task<Result<IReadOnlyCollection<GitHubCommitsResponse>>> GetCommits(GitHubContributionsResponse contributions, ProviderInput input)
+	private async Task<Result<IReadOnlyCollection<GitHubCommitsResponse>>> GetCommits(GitHubContributionsResponse contributions, ProviderInput input, string username)
 	{
 		var responses = new List<GitHubCommitsResponse>();
 
@@ -100,7 +105,7 @@ public class GitHubProvider : IProvider
 			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/commits");
 			var queryParams = new Dictionary<string, string>
 			{
-				{ "author", Config.Username },
+				{ "author", username },
 				{ "since", input.DateRange.From.ToString("O") },
 				{ "until", input.DateRange.To.ToString("O") },
 				{ "per_page", "100" },
@@ -122,7 +127,7 @@ public class GitHubProvider : IProvider
 	}
 
 	private Action<HttpClient> GetRequestSettings()
-		=> (HttpClient client) =>
+		=> client =>
 		{
 			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EnvVarStore.GitHubToken);
 		};

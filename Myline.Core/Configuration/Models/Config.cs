@@ -10,21 +10,21 @@ public record Config
 
 public record GitHubConfig
 {
-	public string Username { get; init; } = "";
+	public string[] Usernames { get; init; } = [];
 }
 
 public class HltbConfig
 {
-	public int UserId { get; init; } = 0;
+	public int[] UserIds { get; init; } = [];
 }
 
 public class LastFmConfig
 {
-	public string Username { get; init; } = "";
+	public string[] Usernames { get; init; } = [];
 }
 
 public class WikiConfig
 {
 	public string[] ApiUrls { get; init; } = [];
-	public Dictionary<string, string> UsernamesPerWikiDomain { get; init; } = new();
+	public IReadOnlyDictionary<string, string[]> UsernamesPerWikiDomain { get; init; } = new Dictionary<string, string[]>();
 }

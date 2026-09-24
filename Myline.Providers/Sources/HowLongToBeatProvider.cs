@@ -15,22 +15,18 @@ public class HowLongToBeatProvider : IProvider
 	{
 		var history = new List<HistoryItem>();
 
-		var apiUrl = new Uri($"https://howlongtobeat.com/api/user/{Config.UserId}/games/list");
-		var body = new HowLongToBeatGamesListQuery
+		var gamesEntries = new List<HltbGameEntry>();
+		foreach (var userId in Config.UserIds)
 		{
-			UserId = Config.UserId,
-			ToggleType = HltbQueryToggleType.MultiList,
-			Lists = [HltbQueryListType.Completed, HltbQueryListType.Replayed, HltbQueryListType.Retired],
-			Limit = 500,
-			CurrentUserHome = true
-		};
-		var result = await WebRequests.Post<HowLongToBeatGamesListQuery, HowLongToBeatGamesListResponse>(apiUrl, body);
-		if (result.IsError)
-		{
-			return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+			var result = await GetGamesListForUser(userId);
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(result.Error);
+			}
+			gamesEntries.AddRange(result.Value.Data.GamesList);
 		}
 
-		var gamesList = result.Value!.Data.GamesList
+		var gamesList = gamesEntries
 			.Where(x => IsEntryWithinDateRange(x, input.DateRange));
 
 		foreach (var entry in gamesList)
@@ -64,6 +60,25 @@ public class HowLongToBeatProvider : IProvider
 		}
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+	}
+
+	private static async Task<Result<HowLongToBeatGamesListResponse>> GetGamesListForUser(int userId)
+	{
+		var apiUrl = new Uri($"https://howlongtobeat.com/api/user/{userId}/games/list");
+		var body = new HowLongToBeatGamesListQuery
+		{
+			UserId = userId,
+			ToggleType = HltbQueryToggleType.MultiList,
+			Lists = [HltbQueryListType.Completed, HltbQueryListType.Replayed, HltbQueryListType.Retired],
+			Limit = 500,
+			CurrentUserHome = true
+		};
+		var result = await WebRequests.Post<HowLongToBeatGamesListQuery, HowLongToBeatGamesListResponse>(apiUrl, body);
+		if (result.IsError)
+		{
+			return Result<HowLongToBeatGamesListResponse>.Fail(result.Error);
+		}
+		return Result<HowLongToBeatGamesListResponse>.Ok(result.Value!);
 	}
 
 	private static bool IsEntryWithinDateRange(HltbGameEntry entry, DateRange dateRange)
