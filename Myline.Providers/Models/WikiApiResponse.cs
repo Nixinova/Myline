@@ -24,7 +24,7 @@ public interface IWikiEvent
 {
 	public string Title { get; }
 	public DateTime Timestamp { get; }
-	public string Comment { get; }
+	public string? Comment { get; }
 }
 
 public record WikiContribution : IWikiEvent
@@ -36,7 +36,7 @@ public record WikiContribution : IWikiEvent
 	public required DateTime Timestamp { get; init; }
 
 	[JsonPropertyName("comment")]
-	public required string Comment { get; init; }
+	public string? Comment { get; init; }
 
 	[JsonPropertyName("sizediff")]
 	public required long SizeDiff { get; init; }
@@ -60,7 +60,7 @@ public record WikiLogEvent : IWikiEvent
 	public required DateTime Timestamp { get; init; }
 
 	[JsonPropertyName("comment")]
-	public required string Comment { get; init; }
+	public string? Comment { get; init; }
 
 	[JsonPropertyName("type")]
 	public required string Type { get; init; }

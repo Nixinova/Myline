@@ -128,7 +128,7 @@ public class WikiProvider : IProvider
 		const string inernalLinkRegex = @"\[\[(?:.+?\|)?(.+?)\]\]";
 		const string sectionSummaryRegex = @"^/\*\s*(.+?)\s*\*/\s*";
 
-		var summary = item.Comment;
+		var summary = item.Comment ?? "";
 		var section = Regex.Match(summary, sectionSummaryRegex).Groups[1].Value;
 
 		summary = summary
