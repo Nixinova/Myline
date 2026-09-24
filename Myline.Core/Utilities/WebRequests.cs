@@ -23,16 +23,26 @@ public static class WebRequests
 				HttpUtility.UrlEncode(x.Key) + "=" + HttpUtility.UrlEncode(x.Value)
 			)
 		);
-		var result = await client.GetAsync(url + queryParamString);
-		if (!result.IsSuccessStatusCode)
+
+		HttpResponseMessage response;
+		try
 		{
-			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
+			response = await client.GetAsync(url + queryParamString);
+		}
+		catch (Exception err)
+		when (err is InvalidOperationException or HttpRequestException or OperationCanceledException or UriFormatException)
+		{
+			return Result<TModel?>.Fail(err.Message);
+		}
+		if (!response.IsSuccessStatusCode)
+		{
+			return Result<TModel?>.Fail(response.StatusCode + " " + response.ReasonPhrase);
 		}
 
 		TModel? content;
 		try
 		{
-			content = await result.Content.ReadFromJsonAsync<TModel>();
+			content = await response.Content.ReadFromJsonAsync<TModel>();
 		}
 		catch (Exception err)
 		{
@@ -46,16 +56,25 @@ public static class WebRequests
 		var client = Init();
 		lambda?.Invoke(client);
 
-		var result = await client.PostAsJsonAsync(url, body);
-		if (!result.IsSuccessStatusCode)
+		HttpResponseMessage response;
+		try
 		{
-			return Result<TModel?>.Fail(result.StatusCode + " " + result.ReasonPhrase);
+			response = await client.PostAsJsonAsync(url, body);
+		}
+		catch (Exception err)
+			when (err is InvalidOperationException or HttpRequestException or OperationCanceledException or UriFormatException)
+		{
+			return Result<TModel?>.Fail(err.Message);
+		}
+		if (!response.IsSuccessStatusCode)
+		{
+			return Result<TModel?>.Fail(response.StatusCode + " " + response.ReasonPhrase);
 		}
 
 		TModel? content;
 		try
 		{
-			content = await result.Content.ReadFromJsonAsync<TModel>();
+			content = await response.Content.ReadFromJsonAsync<TModel>();
 		}
 		catch (Exception err)
 		{
