@@ -3,6 +3,7 @@ using Myline.Core.Configuration;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
+using Myline.Core.Utilities.Extensions;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
@@ -37,7 +38,8 @@ public class LastFmProvider : IProvider
 			{
 				Timestamp = new Timestamp(DateTime.SpecifyKind(date, DateTimeKind.Utc), TimestampPrecision.Second),
 				Site = "Last.fm",
-				Description = $"Listened to {track.Artist.Value} - {track.Song}",
+				Description = $"Listened to {track.Song} by {track.Artist.Value}" +
+				              track.Album.Value.IfNotEmpty(x => $" from {x}")
 			};
 			history.Add(historyItem);
 		}
