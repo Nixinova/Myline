@@ -7,29 +7,18 @@ public static class DataStore
 	private const string DbInitCmd =
 		"""
 		create table if not exists History (
-			Id integer primary key autoincrement,
-			Timestamp text not null,
+			-- Timestamp stored as TimeStamp::ToString()
+			Timestamp text not null primary key,
 			Site text not null,
-			Desc text not null
+			Description text not null
 		);
 
-		create table if not exists Cached (
-			Site text not null,
-			Date text not null,
-			primary key (Site, Date)
+		create table if not exists CachedDates (
+			-- Timestamps stored as DateTime::ToString("u")
+			TimestampFrom text not null,
+			TimestampTo text not null,
+			primary key (TimestampFrom, TimestampTo)
 		);
-
-		create index if not exists idx_History_Timestamp
-		    ON History (Timestamp);
-
-		create index if not exists idx_History_Site
-		    ON History (Site);
-
-		create index if not exists idx_Cached_Site
-		    ON Cached (Site);
-
-		create index if not exists idx_Cached_Date
-		    ON Cached (Date);
 		""";
 
 	public static async Task Init()
