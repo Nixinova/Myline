@@ -7,12 +7,14 @@ public static class CliDisplay
 {
 	public static void DisplayData(IReadOnlyCollection<ViewHistoryItem> items)
 	{
+		var maxTimestampLen = items.Select(x => x.FormattedTimestamp.Length).SafeMax();
+		var maxSiteLen = items.Select(x => x.Site.Length).SafeMax();
 		foreach (var item in items.OrderBy(x => x.Sortkey))
 		{
-				"[" + item.FormattedTimestamp.PadRight(20, ' ') + "] "
-				+ item.Site.PadRight(20, ' ') + " "
-				+ item.Description
 			var line = string.Join(" ",
+				item.FormattedTimestamp.PadRight(maxTimestampLen, ' ') + " ",
+				CenterAlign(item.Site, maxSiteLen) + " ",
+				item.Description
 			);
 			if (line.Length > Console.WindowWidth)
 			{
@@ -21,5 +23,12 @@ public static class CliDisplay
 
 			Console.WriteLine(line);
 		}
+	}
+
+	private static string CenterAlign(string text, int totalWidth)
+	{
+		return text
+			.PadLeft((totalWidth - text.Length) / 2 + text.Length, ' ')
+			.PadRight(totalWidth, ' ');
 	}
 }
