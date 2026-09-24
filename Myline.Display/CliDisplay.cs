@@ -9,11 +9,11 @@ public static class CliDisplay
 	{
 		foreach (var item in items.OrderBy(x => x.Sortkey))
 		{
-			var line = (
 				"[" + item.FormattedTimestamp.PadRight(20, ' ') + "] "
 				+ item.Site.PadRight(20, ' ') + " "
 				+ item.Description
-			).RegexReplace(@"[\t\r\n]", " ");
+			var line = string.Join(" ",
+			);
 			if (line.Length > Console.WindowWidth)
 			{
 				line = line[..(Console.WindowWidth - 1)] + "…";
