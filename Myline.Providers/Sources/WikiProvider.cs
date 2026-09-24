@@ -159,8 +159,22 @@ public class WikiProvider : IProvider
 		return action switch
 		{
 			"upload" => "Uploaded",
+			"overwrite" => "Overwrote",
+			"revert" => "Reverted",
 			"delete" => "Deleted",
+			"restore" => "Restored",
+			"revision" => "Deleted revision of",
+			"move" or "move_redir" => "Moved",
+			"protect" => "Protected",
+			"modify" => "Reprotected",
+			"unprotect" => "Unprotected",
+			"block" => "Blocked",
+			"reblock" => "Reblocked",
+			"unblock" => "Unblocked",
 			"patrol" => "Patrolled",
+			"rights" => "Modified rights for",
+			"merge" => "Merged",
+			"create" => "Created",
 			"thank" => "Thanked",
 			_ => action
 		};
