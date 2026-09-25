@@ -49,12 +49,12 @@ public class WikiProvider : IProvider
 					WikiLogEvent le => MapAction(le.Action),
 					_ => "Affected"
 				};
-				var pageText = edit.Title + section.IfNotEmpty(x => $" § {x}");
+				var pageText = $"{Fmt.Prim(edit.Title)}{section.IfNotEmpty(x => $" § {Fmt.Ter(x)}")}";
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Site = GuessWikiName(apiUri.Host),
-					Description = $"{action} {pageText}{summary.IfNotEmpty(x => " - " + x)}"
+					Description = $"{action} {pageText}{summary.IfNotEmpty(x => " - " + Fmt.Usr(x))}"
 				};
 				history.Add(historyItem);
 			}

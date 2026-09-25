@@ -63,9 +63,9 @@ public class GitHubProvider : IProvider
 				Site = "GitHub",
 				Description =
 					"Committed to " +
-					commit.RepoOwner + "/" + commit.RepoName +
+					Fmt.Prim(commit.RepoOwner + "/" + commit.RepoName) +
 					" - " +
-					commit.Commit.Message
+					Fmt.Usr(commit.Commit.Message)
 			});
 		}
 

@@ -1,10 +1,13 @@
-﻿using Myline.Core.Utilities.Extensions;
+﻿using Myline.Core.Utilities;
+using Myline.Core.Utilities.Extensions;
 using Myline.Display.ViewModels;
 
 namespace Myline.Display;
 
 public static class CliDisplay
 {
+	private const string AnsiReset = "\e[0m";
+
 	public static void DisplayData(IReadOnlyCollection<ViewHistoryItem> items)
 	{
 		var maxTimestampLen = items.Select(x => x.FormattedTimestamp.Length).SafeMax();
@@ -13,12 +16,23 @@ public static class CliDisplay
 		{
 			var line = string.Join(" ",
 				item.FormattedTimestamp.PadRight(maxTimestampLen, ' ') + " ",
-				CenterAlign(item.Site, maxSiteLen) + " ",
+				AutoColour(CenterAlign(item.Site, maxSiteLen)) + " ",
 				item.Description
 			);
-			if (line.Length > Console.WindowWidth)
+
+			// Convert escapes to ansi formatting codes
+			line = line
+				.Replace(OutputFormatHelper.Reset, AnsiReset)
+				.Replace(OutputFormatHelper.Primary, "\e[1;38;5;231m")
+				.Replace(OutputFormatHelper.Secondary, "\e[0;38;5;231m")
+				.Replace(OutputFormatHelper.Tertiary, "\e[0;3;38;5;231m")
+				.Replace(OutputFormatHelper.Addendum, "\e[3;37m");
+
+			var unformattedLine = line.RegexReplace(@"\e.+?m", "");
+			if (unformattedLine.Length > Console.WindowWidth)
 			{
-				line = line[..(Console.WindowWidth - 1)] + "…";
+				var endIndex = Console.WindowWidth - 1 + (line.Length - unformattedLine.Length);
+				line = line[..endIndex] + "…" + AnsiReset;
 			}
 
 			Console.WriteLine(line);
@@ -30,5 +44,20 @@ public static class CliDisplay
 		return text
 			.PadLeft((totalWidth - text.Length) / 2 + text.Length, ' ')
 			.PadRight(totalWidth, ' ');
+	}
+
+	private static string AutoColour(string str)
+	{
+		var hash = str.Trim().ToCharArray().Aggregate(0,
+			(cur, ch) => (cur * 32 + ch) & 0xFFFFFF
+		);
+		const byte minChanVal = 0x60;
+		const byte maxChanVal = 0xFF;
+		var r = minChanVal + ((hash >> 16) & maxChanVal) * (maxChanVal - minChanVal) / maxChanVal;
+		var g = minChanVal + ((hash >> 8) & maxChanVal) * (maxChanVal - minChanVal) / maxChanVal;
+		var b = minChanVal + (hash & maxChanVal) * (maxChanVal - minChanVal) / maxChanVal;
+
+		var ansi = "\e[1;38;2;" + r + ";" + g + ";" + b + "m";
+		return ansi + str + AnsiReset;
 	}
 }

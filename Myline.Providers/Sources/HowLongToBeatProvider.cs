@@ -40,7 +40,7 @@ public class HowLongToBeatProvider : IProvider
 				{
 					Timestamp = new Timestamp(entry.DateAdded, TimestampPrecision.Second),
 					Site = "HowLongToBeat",
-					Description = $"Logged {entry.GameName} - {playedOn}"
+					Description = $"Logged \01{entry.GameName}\00 - {playedOn}"
 				});
 			}
 			if (entry.DateCompleted != null && input.DateRange.Contains(entry.DateCompleted.Value))
@@ -51,7 +51,7 @@ public class HowLongToBeatProvider : IProvider
 						? new Timestamp(entry.DateUpdated, TimestampPrecision.Second)
 						: new Timestamp(entry.DateCompleted.Value, TimestampPrecision.Day),
 					Site = "HowLongToBeat",
-					Description = $"{GetVerb(entry)} {entry.GameName} - {GetDesc(entry)}"
+					Description = $"{GetVerb(entry)} {Fmt.Prim(entry.GameName)} - {Fmt.Usr(GetDesc(entry))}"
 				});
 			}
 		}
