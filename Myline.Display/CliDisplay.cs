@@ -68,7 +68,7 @@ public static class CliDisplay
 	private static string AutoColour(string str)
 	{
 		var hash = str.Trim().ToCharArray().Aggregate(0,
-			(cur, ch) => (cur * 32 + ch) & 0xFFFFFF
+			(cur, ch) => (cur * 0x1F + ch) & 0xFFFFFF
 		);
 		const byte minChanVal = 0x60;
 		const byte maxChanVal = 0xFF;
@@ -76,7 +76,7 @@ public static class CliDisplay
 		var g = minChanVal + ((hash >> 8) & maxChanVal) * (maxChanVal - minChanVal) / maxChanVal;
 		var b = minChanVal + (hash & maxChanVal) * (maxChanVal - minChanVal) / maxChanVal;
 
-		var ansi = "\e[1;38;2;" + r + ";" + g + ";" + b + "m";
+		var ansi = $"\e[1;38;2;{r};{g};{b}m";
 		return ansi + str + AnsiReset;
 	}
 }
