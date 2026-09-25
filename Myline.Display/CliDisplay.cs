@@ -28,14 +28,33 @@ public static class CliDisplay
 				.Replace(OutputFormatHelper.Tertiary, "\e[0;3;38;5;231m")
 				.Replace(OutputFormatHelper.Addendum, "\e[3;37m");
 
-			var unformattedLine = line.RegexReplace(@"\e.+?m", "");
-			if (unformattedLine.Length > Console.WindowWidth)
+			// Construct output line, truncated to console window width, without mistruncating the ansi codes
+			var outputLine = "";
+			var visibleIndex = 0;
+			for (var i = 0; i < line.Length; i++)
 			{
-				var endIndex = Console.WindowWidth - 1 + (line.Length - unformattedLine.Length);
-				line = line[..endIndex] + "…" + AnsiReset;
+				if (line[i] == '\e')
+				{
+					while (line[i] != 'm')
+					{
+						outputLine += line[i];
+						i++;
+					}
+				}
+				else
+				{
+					visibleIndex++;
+				}
+				outputLine += line[i];
+				if (visibleIndex == Console.WindowWidth - 1)
+				{
+					outputLine += "…";
+					break;
+				}
 			}
+			outputLine += AnsiReset;
 
-			Console.WriteLine(line);
+			Console.WriteLine(outputLine);
 		}
 	}
 
