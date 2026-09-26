@@ -59,7 +59,7 @@ public class LastFmProvider : IProvider
 			{ "api_key", ApiKey },
 			{ "from", fromDateUts.ToString(CultureInfo.InvariantCulture) },
 			{ "to", toDateUts.ToString(CultureInfo.InvariantCulture) },
-			{ "limit", "200" },
+			{ "limit", "1000" },
 			{ "format", "json" },
 		};
 		var result = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
