@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public sealed record GitHubCommitsResponse
+public sealed record GitHubCommitResponse
 {
 	[JsonPropertyName("commit")]
-	public required GitHubCommitResponse Commit { get; init; }
+	public required GitHubCommitDetailsResponse Commit { get; init; }
 
 	[JsonPropertyName("author")]
 	public required GitHubUserResponse Author { get; init; }
@@ -27,7 +27,7 @@ public sealed record GitHubCommitsResponse
 	// parents
 }
 
-public sealed record GitHubCommitResponse
+public sealed record GitHubCommitDetailsResponse
 {
 	[JsonPropertyName("author")]
 	public required GitHubCommitAuthorResponse Authored { get; init; }

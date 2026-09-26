@@ -24,13 +24,25 @@ public class GitHubProvider : IProvider
 		            commitContributionsByRepository(maxRepositories: 100) {
 		                repository {
 		                    nameWithOwner
-		                    owner {
-		                        login
-		                    }
+		                    owner { login }
 		                    name
 		                }
 		            }
-		        }
+					pullRequestContributionsByRepository(maxRepositories: 100) {
+					    repository {
+					        nameWithOwner
+					        owner { login }
+					        name
+					    }
+					}
+					issueContributionsByRepository(maxRepositories: 100) {
+					    repository {
+					        nameWithOwner
+					        owner { login }
+					        name
+					    }
+					}
+				}
 		    }
 		}
 		""";
@@ -39,7 +51,9 @@ public class GitHubProvider : IProvider
 	{
 		var history = new List<HistoryItem>();
 
-		var commits = new List<GitHubCommitsResponse>();
+		var commits = new List<GitHubCommitResponse>();
+		var prs = new List<GitHubPrResponse>();
+		var issues = new List<GitHubIssueResponse>();
 		foreach (var username in Config.Usernames)
 		{
 			var contributionsResult = await GetContributions(input, username);
@@ -47,12 +61,32 @@ public class GitHubProvider : IProvider
 			{
 				return Result<IReadOnlyCollection<HistoryItem>>.Fail(contributionsResult.Error);
 			}
-			var commitsResult = await GetCommits(contributionsResult.Value, input, username);
+
+			var contributions = contributionsResult.Value.Data.UserData.Contributions;
+
+			var commitContribs = contributions.Commits.Select(x => x.Data).ToList();
+			var commitsResult = await GetCommits(input, commitContribs, username);
 			if (commitsResult.IsError)
 			{
 				return Result<IReadOnlyCollection<HistoryItem>>.Fail(commitsResult.Error);
 			}
 			commits.AddRange(commitsResult.Value);
+
+			var prContribs = contributions.Prs.Select(x => x.Data).ToList();
+			var prsResult = await GetPrs(input, prContribs, username);
+			if (prsResult.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(prsResult.Error);
+			}
+			prs.AddRange(prsResult.Value);
+
+			var issueContribs = contributions.Issues.Select(x => x.Data).ToList();
+			var issuesResult = await GetIssues(input, issueContribs, username);
+			if (issuesResult.IsError)
+			{
+				return Result<IReadOnlyCollection<HistoryItem>>.Fail(issuesResult.Error);
+			}
+			issues.AddRange(issuesResult.Value);
 		}
 
 		foreach (var commit in commits)
@@ -68,11 +102,37 @@ public class GitHubProvider : IProvider
 					Fmt.Usr(commit.Commit.Message)
 			});
 		}
+		foreach (var pr in prs)
+		{
+			history.Add(new HistoryItem
+			{
+				Timestamp = new Timestamp(pr.CreatedAt, TimestampPrecision.Second),
+				Site = "GitHub",
+				Description =
+					"Created PR " + Fmt.Sec("#" + pr.Number) +
+					" on " + Fmt.Prim(pr.Base.RepoName) +
+					" - " + Fmt.Ter(pr.Title) +
+					" - " + Fmt.Usr(pr.Body)
+			});
+		}
+		foreach (var issue in issues)
+		{
+			history.Add(new HistoryItem
+			{
+				Timestamp = new Timestamp(issue.CreatedAt, TimestampPrecision.Second),
+				Site = "GitHub",
+				Description =
+					"Opened issue " + Fmt.Sec("#" + issue.Number) +
+					" on " + Fmt.Prim(issue.Repo) +
+					" - " + Fmt.Ter(issue.Title) +
+					" - " + Fmt.Usr(issue.Body)
+			});
+		}
 
 		return history;
 	}
 
-	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
+	private static async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
 	{
 		var request = new GitHubContributionsQuery
 		{
@@ -87,22 +147,20 @@ public class GitHubProvider : IProvider
 		var result = await WebRequests.Post<GitHubContributionsQuery, GitHubContributionsResponse>(GitHubGraphQlUrl, request, GetRequestSettings());
 		if (result.IsError)
 		{
-			return Result<GitHubContributionsResponse>.Fail(result.Error);
+			return Result<GitHubContributionsResponse>.Fail("Contributions GraphQL: " + result.Error);
 		}
 		if (result.Value is null)
 		{
-			return Result<GitHubContributionsResponse>.Fail("No response");
+			return Result<GitHubContributionsResponse>.Fail("No response from GraphQL");
 		}
 		return result.Value;
 	}
 
-	private async Task<Result<IReadOnlyCollection<GitHubCommitsResponse>>> GetCommits(GitHubContributionsResponse contributions, ProviderInput input, string username)
+	private static async Task<Result<IReadOnlyCollection<GitHubCommitResponse>>> GetCommits(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
 	{
-		var responses = new List<GitHubCommitsResponse>();
+		var responses = new List<GitHubCommitResponse>();
 
-		var repos = contributions.Data.UserData.Contributions.Data
-			.Select(x => x.Data);
-		foreach (var repo in repos)
+		foreach (var repo in repoData)
 		{
 			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/commits");
 			var queryParams = new Dictionary<string, string>
@@ -113,12 +171,11 @@ public class GitHubProvider : IProvider
 				{ "per_page", "100" },
 				{ "page", "1" }
 			};
-			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitsResponse>>(url, queryParams, GetRequestSettings());
+			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitResponse>>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
-				return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Fail(result.Error);
+				return Result<IReadOnlyCollection<GitHubCommitResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: commits: {result.Error}");
 			}
-
 			if (result.Value != null)
 			{
 				responses.AddRange(result.Value);
@@ -128,7 +185,72 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private Action<HttpClient> GetRequestSettings()
+	private static async Task<Result<IReadOnlyCollection<GitHubPrResponse>>> GetPrs(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	{
+		var responses = new List<GitHubPrResponse>();
+
+		foreach (var repo in repoData)
+		{
+			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/pulls");
+			var queryParams = new Dictionary<string, string>
+			{
+				{ "creator", username },
+				{ "state", "all" },
+				{ "sort", "created" },
+				{ "direction", "desc" },
+				{ "per_page", "100" },
+				{ "page", "1" }
+			};
+			var result = await WebRequests.Get<IReadOnlyCollection<GitHubPrResponse>>(url, queryParams, GetRequestSettings());
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<GitHubPrResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: PRs: {result.Error}");
+			}
+			if (result.Value != null)
+			{
+				var prs = result.Value.Where(x =>
+					input.DateRange.Contains(x.CreatedAt)
+				);
+				responses.AddRange(prs);
+			}
+		}
+
+		return responses;
+	}
+
+	private static async Task<Result<IReadOnlyCollection<GitHubIssueResponse>>> GetIssues(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	{
+		var responses = new List<GitHubIssueResponse>();
+
+		foreach (var repo in repoData)
+		{
+			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/issues");
+			var queryParams = new Dictionary<string, string>
+			{
+				{ "creator", username },
+				{ "state", "all" },
+				{ "since", input.DateRange.From.ToString("O") },
+				{ "per_page", "100" },
+				{ "page", "1" }
+			};
+			var result = await WebRequests.Get<IReadOnlyCollection<GitHubIssueResponse>>(url, queryParams, GetRequestSettings());
+			if (result.IsError)
+			{
+				return Result<IReadOnlyCollection<GitHubIssueResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: issues: {result.Error}");
+			}
+			if (result.Value != null)
+			{
+				var issues = result.Value.Where(x =>
+					input.DateRange.Contains(x.CreatedAt)
+				);
+				responses.AddRange(issues);
+			}
+		}
+
+		return responses;
+	}
+
+	private static Action<HttpClient> GetRequestSettings()
 		=> client =>
 		{
 			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EnvVarStore.GitHubToken);

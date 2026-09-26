@@ -23,7 +23,13 @@ public sealed record GitHubUserContributionData
 public sealed record GitHubContributionsCollection
 {
 	[JsonPropertyName("commitContributionsByRepository")]
-	public required IReadOnlyList<GitHubRepoContributionsData> Data { get; init; }
+	public required IReadOnlyList<GitHubRepoContributionsData> Commits { get; init; }
+
+	[JsonPropertyName("pullRequestContributionsByRepository")]
+	public required IReadOnlyList<GitHubRepoContributionsData> Prs { get; init; }
+
+	[JsonPropertyName("issueContributionsByRepository")]
+	public required IReadOnlyList<GitHubRepoContributionsData> Issues { get; init; }
 }
 
 public sealed record GitHubRepoContributionsData
