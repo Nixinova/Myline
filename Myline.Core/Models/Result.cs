@@ -1,7 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Myline.Core.Models;
 
 public class Result<TValue>
 {
+	[MemberNotNullWhen(true, nameof(Error))]
+	[MemberNotNullWhen(false, nameof(Value))]
 	public bool IsError { get; }
 
 	public TValue Value
@@ -42,4 +46,8 @@ public class Result<TValue>
 	public static Result<TValue> Ok(TValue value) => new(value, null);
 
 	public static Result<TValue> Fail(string error) => new(default, error);
+
+	public static implicit operator Result<TValue>(TValue value) {
+		return Ok(value);
+	}
 }

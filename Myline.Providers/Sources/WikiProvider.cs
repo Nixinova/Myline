@@ -60,7 +60,7 @@ public class WikiProvider : IProvider
 			}
 		}
 
-		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+		return history;
 	}
 
 	private async Task<Result<IReadOnlyList<IWikiEvent>>> GetWikiEvents(Uri apiUri, ProviderInput input, string username)
@@ -97,7 +97,7 @@ public class WikiProvider : IProvider
 		{
 			return Result<IReadOnlyList<IWikiEvent>>.Fail(result.Error);
 		}
-		return Result<IReadOnlyList<IWikiEvent>>.Ok(result.Value!.Query.UserContributions!);
+		return result.Value.Query.UserContributions!;
 	}
 
 	private static async Task<Result<IReadOnlyList<IWikiEvent>>> GetLogs(Uri apiUri, ProviderInput input, string username)
@@ -119,7 +119,7 @@ public class WikiProvider : IProvider
 		{
 			return Result<IReadOnlyList<IWikiEvent>>.Fail(result.Error);
 		}
-		return Result<IReadOnlyList<IWikiEvent>>.Ok(result.Value!.Query.LogEvents!);
+		return result.Value.Query.LogEvents!;
 	}
 
 	private static (string? Section, string Summary) ParseEditSummary(IWikiEvent item)

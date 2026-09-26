@@ -69,7 +69,7 @@ public class GitHubProvider : IProvider
 			});
 		}
 
-		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+		return history;
 	}
 
 	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
@@ -93,7 +93,7 @@ public class GitHubProvider : IProvider
 		{
 			return Result<GitHubContributionsResponse>.Fail("No response");
 		}
-		return Result<GitHubContributionsResponse>.Ok(result.Value);
+		return result.Value;
 	}
 
 	private async Task<Result<IReadOnlyCollection<GitHubCommitsResponse>>> GetCommits(GitHubContributionsResponse contributions, ProviderInput input, string username)
@@ -125,7 +125,7 @@ public class GitHubProvider : IProvider
 			}
 		}
 
-		return Result<IReadOnlyCollection<GitHubCommitsResponse>>.Ok(responses);
+		return responses;
 	}
 
 	private Action<HttpClient> GetRequestSettings()

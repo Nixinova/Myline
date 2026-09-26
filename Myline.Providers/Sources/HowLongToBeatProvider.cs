@@ -56,7 +56,7 @@ public class HowLongToBeatProvider : IProvider
 			}
 		}
 
-		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+		return history;
 	}
 
 	private static async Task<Result<HowLongToBeatGamesListResponse>> GetGamesListForUser(int userId)
@@ -75,7 +75,7 @@ public class HowLongToBeatProvider : IProvider
 		{
 			return Result<HowLongToBeatGamesListResponse>.Fail(result.Error);
 		}
-		return Result<HowLongToBeatGamesListResponse>.Ok(result.Value!);
+		return result.Value;
 	}
 
 	private static bool IsEntryWithinDateRange(HltbGameEntry entry, DateRange dateRange)

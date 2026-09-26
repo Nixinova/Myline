@@ -45,7 +45,7 @@ public class LastFmProvider : IProvider
 			history.Add(historyItem);
 		}
 
-		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
+		return history;
 	}
 
 	private async Task<Result<LastFmRecentTracksResponse>> GetPlaysForUser(ProviderInput input, string username)
@@ -67,6 +67,6 @@ public class LastFmProvider : IProvider
 		{
 			return Result<LastFmRecentTracksResponse>.Fail(result.Error);
 		}
-		return Result<LastFmRecentTracksResponse>.Ok(result.Value!);
+		return result.Value;
 	}
 }
