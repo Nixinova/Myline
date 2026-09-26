@@ -2,13 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record LastFmRecentTracksResponse
+public sealed record LastFmRecentTracksResponse
 {
 	[JsonPropertyName("recenttracks")]
 	public required LastFmRecentTracks RecentTracks { get; init; }
 }
 
-public record LastFmRecentTracks
+public sealed record LastFmRecentTracks
 {
 	[JsonPropertyName("@attr")]
 	public required object Attributes { get; init; }
@@ -17,7 +17,7 @@ public record LastFmRecentTracks
 	public required IList<LastFmTrack> Tracks { get; init; }
 }
 
-public record LastFmTrack
+public sealed record LastFmTrack
 {
 	/// Null if now playing
 	[JsonPropertyName("date")]
@@ -46,7 +46,7 @@ public record LastFmTrack
 	public required string Streamable { get; init; }
 }
 
-public record LastFmTrackDataItem
+public sealed record LastFmTrackDataItem
 {
 	/// Empty string when not present
 	[JsonPropertyName("mbid")]
@@ -56,7 +56,7 @@ public record LastFmTrackDataItem
 	public required string Value { get; init; }
 }
 
-public record LastFmDate
+public sealed record LastFmDate
 {
 	/// Empty string when not present
 	[JsonPropertyName("uts")]

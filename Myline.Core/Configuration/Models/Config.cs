@@ -13,17 +13,17 @@ public record GitHubConfig
 	public string[] Usernames { get; init; } = [];
 }
 
-public class HltbConfig
+public record HltbConfig
 {
 	public int[] UserIds { get; init; } = [];
 }
 
-public class LastFmConfig
+public record LastFmConfig
 {
 	public string[] Usernames { get; init; } = [];
 }
 
-public class WikiConfig
+public record WikiConfig
 {
 	public string[] ApiUrls { get; init; } = [];
 	public IReadOnlyDictionary<string, string[]> UsernamesPerWikiDomain { get; init; } = new Dictionary<string, string[]>();

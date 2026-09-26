@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record GitHubContributionsQuery
+public sealed record GitHubContributionsQuery
 {
 	[JsonPropertyName("query")]
 	public required string Query { get; init; }

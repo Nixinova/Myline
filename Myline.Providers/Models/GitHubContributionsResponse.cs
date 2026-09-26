@@ -2,37 +2,37 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record GitHubContributionsResponse
+public sealed record GitHubContributionsResponse
 {
 	[JsonPropertyName("data")]
 	public required GitHubContributionsData Data { get; init; }
 }
 
-public record GitHubContributionsData
+public sealed record GitHubContributionsData
 {
 	[JsonPropertyName("user")]
 	public required GitHubUserContributionData UserData { get; init; }
 }
 
-public record GitHubUserContributionData
+public sealed record GitHubUserContributionData
 {
 	[JsonPropertyName("contributionsCollection")]
 	public required GitHubContributionsCollection Contributions { get; init; }
 }
 
-public record GitHubContributionsCollection
+public sealed record GitHubContributionsCollection
 {
 	[JsonPropertyName("commitContributionsByRepository")]
 	public required IReadOnlyList<GitHubRepoContributionsData> Data { get; init; }
 }
 
-public record GitHubRepoContributionsData
+public sealed record GitHubRepoContributionsData
 {
 	[JsonPropertyName("repository")]
 	public required ContributionRepoData Data { get; init; }
 }
 
-public record ContributionRepoData
+public sealed record ContributionRepoData
 {
 	[JsonPropertyName("owner")]
 	public required RepoOwner Owner { get; init; }
@@ -44,7 +44,7 @@ public record ContributionRepoData
 	public required string FullName { get; init; }
 }
 
-public record RepoOwner
+public sealed record RepoOwner
 {
 	[JsonPropertyName("login")]
 	public required string Name { get; init; }

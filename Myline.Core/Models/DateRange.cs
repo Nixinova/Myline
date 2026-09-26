@@ -1,10 +1,7 @@
 namespace Myline.Core.Models;
 
-public class DateRange(DateTime from, DateTime to)
+public readonly record struct DateRange(DateTime From, DateTime To)
 {
-	public DateTime From { get; } = from;
-	public DateTime To { get; } = to;
-
 	public bool Contains(DateTime date)
 	{
 		return From <= date && date <= To;

@@ -2,13 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record HowLongToBeatGamesListResponse
+public sealed record HowLongToBeatGamesListResponse
 {
 	[JsonPropertyName("data")]
 	public required HltbGamesData Data { get; init; }
 }
 
-public record HltbGamesData
+public sealed record HltbGamesData
 {
 	[JsonPropertyName("count")]
 	public required int Count { get; init; }
@@ -26,7 +26,7 @@ public record HltbGamesData
 	public required object SummaryData { get; init; }
 }
 
-public record HltbGameEntry
+public sealed record HltbGameEntry
 {
 	[JsonPropertyName("id")]
 	public required int Id { get; init; }

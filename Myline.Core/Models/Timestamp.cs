@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Myline.Core.Models;
 
-public class Timestamp
+public readonly record struct Timestamp
 {
 	/// UTC date and time
 	public DateTime Time { get; }

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record WikiApiResponse
+public sealed record WikiApiResponse
 {
 	[JsonPropertyName("batchcomplete")]
 	public string BatchComplete { get; init; } = "";
@@ -11,7 +11,7 @@ public record WikiApiResponse
 	public WikiQueryResponse Query { get; init; } = new();
 }
 
-public record WikiQueryResponse
+public sealed record WikiQueryResponse
 {
 	[JsonPropertyName("usercontribs")]
 	public WikiContribution[]? UserContributions { get; init; } = [];
@@ -27,7 +27,7 @@ public interface IWikiEvent
 	public string? Comment { get; }
 }
 
-public record WikiContribution : IWikiEvent
+public sealed record WikiContribution : IWikiEvent
 {
 	[JsonPropertyName("title")]
 	public required string Title { get; init; }
@@ -51,7 +51,7 @@ public record WikiContribution : IWikiEvent
 	// int size
 }
 
-public record WikiLogEvent : IWikiEvent
+public sealed record WikiLogEvent : IWikiEvent
 {
 	[JsonPropertyName("title")]
 	public required string Title { get; init; }

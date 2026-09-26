@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Myline.Core.Models;
 
-public class Result<TValue>
+public readonly struct Result<TValue>
 {
 	[MemberNotNullWhen(true, nameof(Error))]
 	[MemberNotNullWhen(false, nameof(Value))]

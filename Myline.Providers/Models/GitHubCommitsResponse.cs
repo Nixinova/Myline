@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record GitHubCommitsResponse
+public sealed record GitHubCommitsResponse
 {
 	[JsonPropertyName("commit")]
 	public required GitHubCommitResponse Commit { get; init; }
@@ -27,7 +27,7 @@ public record GitHubCommitsResponse
 	// parents
 }
 
-public record GitHubCommitResponse
+public sealed record GitHubCommitResponse
 {
 	[JsonPropertyName("author")]
 	public required GitHubCommitAuthorResponse Authored { get; init; }
@@ -44,7 +44,7 @@ public record GitHubCommitResponse
 	// verification
 }
 
-public record GitHubUserResponse
+public sealed record GitHubUserResponse
 {
 	[JsonPropertyName("login")]
 	public required string Name { get; init; }
@@ -71,7 +71,7 @@ public record GitHubUserResponse
 	// site_admin
 }
 
-public record GitHubCommitAuthorResponse
+public sealed record GitHubCommitAuthorResponse
 {
 	[JsonPropertyName("name")]
 	public required string Name { get; init; }

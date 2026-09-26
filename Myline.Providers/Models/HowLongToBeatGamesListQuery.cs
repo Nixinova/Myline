@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
 
-public record HowLongToBeatGamesListQuery
+public sealed record HowLongToBeatGamesListQuery
 {
 	[JsonPropertyName("user_id")]
 	public required int UserId { get; init; }
@@ -44,7 +44,7 @@ public record HowLongToBeatGamesListQuery
 	public required bool CurrentUserHome { get; init; }
 }
 
-public record HowLongToBeatGamesListFilter
+public sealed record HowLongToBeatGamesListFilter
 {
 	[JsonPropertyName("mode")]
 	public HltbQueryFilterMode Mode { get; init; } = HltbQueryFilterMode.Include;
