@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Myline.Providers.Models;
@@ -14,7 +15,12 @@ public sealed record LastFmRecentTracks
 	public required object Attributes { get; init; }
 
 	[JsonPropertyName("track")]
-	public required IList<LastFmTrack> Tracks { get; init; }
+	public required JsonElement Track { private get; init; }
+	public IReadOnlyList<LastFmTrack> Tracks => Track.ValueKind switch
+	{
+		JsonValueKind.Array => JsonSerializer.Deserialize<List<LastFmTrack>>(Track.GetRawText()) ?? [],
+		_ => []
+	};
 }
 
 public sealed record LastFmTrack
