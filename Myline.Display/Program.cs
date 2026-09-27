@@ -5,6 +5,7 @@ using Myline.Display.Mappers;
 using Myline.Providers;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Sources;
+using Myline.Repository;
 using Myline.Repository.Database;
 
 namespace Myline.Display;
@@ -13,13 +14,17 @@ public class Program
 {
 	static async Task Main(string[] args)
 	{
-		await EnvVarStore.Init();
-		await ConfigStore.Init();
-		await DataStore.Init();
-		WebRequests.Init();
-
-		var sourceProviders = CreateProviders().ToList();
-		var provider = new HistoryProvider(sourceProviders);
+		var constructorInput = new ProviderConstructorInput
+		{
+			WebRequests = new WebRequests(),
+			EnvVarStore = await new EnvVarStore().Init(),
+			ConfigStore = await new ConfigStore().Init(),
+		};
+		var sourceProviders = CreateProviders(constructorInput).ToList();
+		var dataStore = await new DataStore().Init();
+		var cachedDatesRepo = new CachedDatesRepository(dataStore);
+		var historyRepo = new HistoryRepository(dataStore);
+		var provider = new HistoryProvider(sourceProviders, cachedDatesRepo, historyRepo);
 
 		var inputResult = ParseInput(args);
 		if (inputResult.IsError)
@@ -66,11 +71,11 @@ public class Program
 		});
 	}
 
-	private static IEnumerable<IProvider> CreateProviders()
+	private static IEnumerable<IProvider> CreateProviders(ProviderConstructorInput input)
 	{
-		yield return new GitHubProvider();
-		yield return new HowLongToBeatProvider();
-		yield return new LastFmProvider();
-		yield return new WikiProvider();
+		yield return new GitHubProvider(input);
+		yield return new HowLongToBeatProvider(input);
+		yield return new LastFmProvider(input);
+		yield return new WikiProvider(input);
 	}
 }

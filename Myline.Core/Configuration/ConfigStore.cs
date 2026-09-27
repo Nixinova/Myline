@@ -1,17 +1,18 @@
 using System.Text.Json;
 using Myline.Core.Common;
+using Myline.Core.Configuration.Interfaces;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Utilities;
 
 namespace Myline.Core.Configuration;
 
-public static class ConfigStore
+public class ConfigStore : IConfigStore
 {
-	public static Config Config { get; private set; } = new();
-
 	private static readonly string ConfigFilePath = Path.Combine(AppData.DataFolder, "Config.json");
 
-	public static async Task Init()
+	public Config Config { get; private set; } = null!;
+
+	public async Task<IConfigStore> Init()
 	{
 		var folder = Path.GetDirectoryName(ConfigFilePath)!;
 		if (!Directory.Exists(folder))
@@ -31,9 +32,11 @@ public static class ConfigStore
 		}
 
 		await LoadConfig();
+
+		return this;
 	}
 
-	private static async Task LoadConfig()
+	private async Task LoadConfig()
 	{
 		var contents = await FileSystemHelper.ReadFile(ConfigFilePath);
 		var configContents = JsonSerializer.Deserialize<Config>(contents);

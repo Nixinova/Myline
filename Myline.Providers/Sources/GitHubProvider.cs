@@ -1,17 +1,16 @@
 using System.Net.Http.Headers;
-using System.Text.Json;
-using Myline.Core.Configuration;
+using Myline.Core.Configuration.Interfaces;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
+using Myline.Core.Utilities.Interfaces;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
-public class GitHubProvider : IProvider
+public class GitHubProvider(ProviderConstructorInput construct) : IProvider
 {
-	private static GitHubConfig Config => ConfigStore.Config.GitHubConfig;
 	private static readonly Uri GitHubGraphQlUrl = new("https://api.github.com/graphql");
 	private const string ContributionsGraphQl =
 		"""
@@ -47,6 +46,12 @@ public class GitHubProvider : IProvider
 		    }
 		}
 		""";
+
+	private readonly IWebRequests _webRequests = construct.WebRequests;
+	private readonly IEnvVarStore _envVarStore = construct.EnvVarStore;
+	private readonly IConfigStore _configStore = construct.ConfigStore;
+
+	private GitHubConfig Config => _configStore.Config.GitHubConfig;
 
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
@@ -133,7 +138,7 @@ public class GitHubProvider : IProvider
 		return history;
 	}
 
-	private static async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
+	private async Task<Result<GitHubContributionsResponse>> GetContributions(ProviderInput input, string username)
 	{
 		var request = new GitHubContributionsQuery
 		{
@@ -145,7 +150,7 @@ public class GitHubProvider : IProvider
 				to = input.DateRange.To.ToString("O"),
 			}
 		};
-		var result = await WebRequests.Post<GitHubContributionsQuery, GitHubContributionsResponse>(GitHubGraphQlUrl, request, GetRequestSettings());
+		var result = await _webRequests.Post<GitHubContributionsQuery, GitHubContributionsResponse>(GitHubGraphQlUrl, request, GetRequestSettings());
 		if (result.IsError)
 		{
 			return Result<GitHubContributionsResponse>.Fail("Contributions GraphQL: " + result.Error);
@@ -157,7 +162,7 @@ public class GitHubProvider : IProvider
 		return result.Value;
 	}
 
-	private static async Task<Result<IReadOnlyCollection<GitHubCommitResponse>>> GetCommits(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	private async Task<Result<IReadOnlyCollection<GitHubCommitResponse>>> GetCommits(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
 	{
 		var responses = new List<GitHubCommitResponse>();
 
@@ -172,7 +177,7 @@ public class GitHubProvider : IProvider
 				{ "per_page", "100" },
 				{ "page", "1" }
 			};
-			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitResponse>>(url, queryParams, GetRequestSettings());
+			var result = await _webRequests.Get<IReadOnlyCollection<GitHubCommitResponse>>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
 				return Result<IReadOnlyCollection<GitHubCommitResponse>>.Fail($"{repo.FullName}: commits: {result.Error}");
@@ -186,7 +191,7 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private static async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetPrs(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username, int page = 1)
+	private async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetPrs(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username, int page = 1)
 	{
 		var responses = new List<GitHubSearchItemResponse>();
 
@@ -202,7 +207,7 @@ public class GitHubProvider : IProvider
 					$"created:{input.DateRange.From:yyyy-MM-dd}..{input.DateRange.To:yyyy-MM-dd}",
 				])
 			};
-			var result = await WebRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
+			var result = await _webRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
 				return Result<IReadOnlyCollection<GitHubSearchItemResponse>>.Fail($"{repo.FullName}: PRs: {result.Error}");
@@ -219,7 +224,7 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private static async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetIssues(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	private async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetIssues(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
 	{
 		var responses = new List<GitHubSearchItemResponse>();
 
@@ -235,7 +240,7 @@ public class GitHubProvider : IProvider
 					$"created:{input.DateRange.From:yyyy-MM-dd}..{input.DateRange.To:yyyy-MM-dd}",
 				])
 			};
-			var result = await WebRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
+			var result = await _webRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
 				return Result<IReadOnlyCollection<GitHubSearchItemResponse>>.Fail($"{repo.FullName}: issues: {result.Error}");
@@ -252,9 +257,12 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private static Action<HttpClient> GetRequestSettings()
-		=> client =>
+	private Action<HttpClient> GetRequestSettings()
+	{
+		return RequestSettings;
+		void RequestSettings(HttpClient client)
 		{
-			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EnvVarStore.GitHubToken);
-		};
+			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _envVarStore.GitHubToken);
+		}
+	}
 }

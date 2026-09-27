@@ -1,8 +1,10 @@
+using Myline.Repository.Interfaces;
+
 namespace Myline.Repository.Database;
 
-public static class DataStore
+public class DataStore : IDataStore
 {
-	public static Database Database { get; private set; } = null!;
+	public Database Database { get; private set; } = null!;
 
 	private const string DbInitCmd =
 		"""
@@ -20,8 +22,7 @@ public static class DataStore
 			primary key (TimestampFrom, TimestampTo)
 		);
 		""";
-
-	public static async Task Init()
+	public async Task<IDataStore> Init()
 	{
 		Database = new Database();
 
@@ -31,5 +32,7 @@ public static class DataStore
 		await using var command = connection.CreateCommand();
 		command.CommandText =  DbInitCmd;
 		await command.ExecuteNonQueryAsync();
+
+		return this;
 	}
 }

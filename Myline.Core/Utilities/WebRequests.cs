@@ -1,21 +1,22 @@
 using System.Net.Http.Json;
 using System.Web;
 using Myline.Core.Models;
+using Myline.Core.Utilities.Interfaces;
 
 namespace Myline.Core.Utilities;
 
-public static class WebRequests
+public class WebRequests : IWebRequests
 {
-	public static HttpClient Init()
+	private static HttpClient CreateClient()
 	{
 		var client = new HttpClient();
 		client.DefaultRequestHeaders.UserAgent.ParseAdd("Myline/0.0");
 		return client;
 	}
 
-	public static async Task<Result<TModel?>> Get<TModel>(Uri url, Dictionary<string, string> queryParams, Action<HttpClient>? lambda = null)
+	public async Task<Result<TModel?>> Get<TModel>(Uri url, Dictionary<string, string> queryParams, Action<HttpClient>? lambda = null)
 	{
-		var client = Init();
+		var client = CreateClient();
 		lambda?.Invoke(client);
 
 		var queryParamString = "?" + string.Join("&",
@@ -51,9 +52,9 @@ public static class WebRequests
 		return Result<TModel?>.Ok(content);
 	}
 
-	public static async Task<Result<TModel?>> Post<TBody, TModel>(Uri url, TBody body, Action<HttpClient>? lambda = null)
+	public async Task<Result<TModel?>> Post<TBody, TModel>(Uri url, TBody body, Action<HttpClient>? lambda = null)
 	{
-		var client = Init();
+		var client = CreateClient();
 		lambda?.Invoke(client);
 
 		HttpResponseMessage response;

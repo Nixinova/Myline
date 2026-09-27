@@ -1,17 +1,17 @@
 using Microsoft.Data.Sqlite;
 using Myline.Core.Models;
-using Myline.Repository.Database;
+using Myline.Repository.Interfaces;
 
 namespace Myline.Repository;
 
-public static class HistoryRepository
+public class HistoryRepository(IDataStore dataStore) : IHistoryRepository
 {
-	public static async Task<IReadOnlyList<HistoryItem>> GetHistoryWithinRange(DateRange dateRange)
+	public async Task<IReadOnlyList<HistoryItem>> GetHistoryWithinRange(DateRange dateRange)
 	{
 		var dateFrom = new Timestamp(dateRange.From, TimestampPrecision.Second);
 		var dateTo = new Timestamp(dateRange.To, TimestampPrecision.Second);
 
-		await using var connection = DataStore.Database.CreateConnection();
+		await using var connection = dataStore.Database.CreateConnection();
 		await connection.OpenAsync();
 
 		await using var command = connection.CreateCommand();
@@ -42,9 +42,9 @@ public static class HistoryRepository
 		return entries;
 	}
 
-	public static async Task SaveHistoryItems(IReadOnlyList<HistoryItem> history)
+	public async Task SaveHistoryItems(IReadOnlyList<HistoryItem> history)
 	{
-		await using var connection = DataStore.Database.CreateConnection();
+		await using var connection = dataStore.Database.CreateConnection();
 		await connection.OpenAsync();
 
 		await using var transaction = await connection.BeginTransactionAsync();

@@ -1,13 +1,13 @@
 using Myline.Core.Models;
-using Myline.Repository.Database;
+using Myline.Repository.Interfaces;
 
 namespace Myline.Repository;
 
-public static class CachedDatesRepository
+public class CachedDatesRepository(IDataStore dataStore) : ICachedDatesRepository
 {
-	public static async Task<bool> IsCachedBetween(DateRange dateRange)
+	public async Task<bool> IsCachedBetween(DateRange dateRange)
 	{
-		await using var connection = DataStore.Database.CreateConnection();
+		await using var connection = dataStore.Database.CreateConnection();
 		await connection.OpenAsync();
 
 		await using var command = connection.CreateCommand();
@@ -26,9 +26,9 @@ public static class CachedDatesRepository
 		return reader.HasRows;
 	}
 
-	public static async Task SaveCachedDates(DateRange dateRange)
+	public async Task SaveCachedDates(DateRange dateRange)
 	{
-		await using var connection = DataStore.Database.CreateConnection();
+		await using var connection = dataStore.Database.CreateConnection();
 		await connection.OpenAsync();
 
 		await using var command = connection.CreateCommand();

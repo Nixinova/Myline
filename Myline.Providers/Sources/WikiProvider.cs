@@ -1,17 +1,21 @@
 using System.Text.RegularExpressions;
-using Myline.Core.Configuration;
+using Myline.Core.Configuration.Interfaces;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Core.Utilities.Extensions;
+using Myline.Core.Utilities.Interfaces;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
-public class WikiProvider : IProvider
+public class WikiProvider(ProviderConstructorInput construct) : IProvider
 {
-	private static WikiConfig Config => ConfigStore.Config.WikiConfig;
+	private readonly IWebRequests _webRequests = construct.WebRequests;
+	private readonly IConfigStore _configStore = construct.ConfigStore;
+
+	private WikiConfig Config => _configStore.Config.WikiConfig;
 
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
@@ -78,7 +82,7 @@ public class WikiProvider : IProvider
 		return Result<IReadOnlyList<IWikiEvent>>.Ok([.. contribsResult.Value, .. logsResult.Value]);
 	}
 
-	private static async Task<Result<IReadOnlyList<IWikiEvent>>> GetContributions(Uri apiUri, ProviderInput input, string username)
+	private async Task<Result<IReadOnlyList<IWikiEvent>>> GetContributions(Uri apiUri, ProviderInput input, string username)
 	{
 		var urlParams = new Dictionary<string, string>
 		{
@@ -92,7 +96,7 @@ public class WikiProvider : IProvider
 			{ "ucprop", "ids|title|timestamp|comment|size|sizediff|flags" },
 			{ "format", "json" },
 		};
-		var result = await WebRequests.Get<WikiApiResponse>(apiUri, urlParams);
+		var result = await _webRequests.Get<WikiApiResponse>(apiUri, urlParams);
 		if (result.IsError)
 		{
 			return Result<IReadOnlyList<IWikiEvent>>.Fail(result.Error);
@@ -100,7 +104,7 @@ public class WikiProvider : IProvider
 		return result.Value.Query.UserContributions!;
 	}
 
-	private static async Task<Result<IReadOnlyList<IWikiEvent>>> GetLogs(Uri apiUri, ProviderInput input, string username)
+	private async Task<Result<IReadOnlyList<IWikiEvent>>> GetLogs(Uri apiUri, ProviderInput input, string username)
 	{
 		var urlParams = new Dictionary<string, string>
 		{
@@ -114,7 +118,7 @@ public class WikiProvider : IProvider
 			{ "leprop", "ids|title|timestamp|comment|type|action|user|details" },
 			{ "format", "json" },
 		};
-		var result = await WebRequests.Get<WikiApiResponse>(apiUri, urlParams);
+		var result = await _webRequests.Get<WikiApiResponse>(apiUri, urlParams);
 		if (result.IsError)
 		{
 			return Result<IReadOnlyList<IWikiEvent>>.Fail(result.Error);

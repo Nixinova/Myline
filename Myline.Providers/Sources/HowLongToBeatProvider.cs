@@ -1,16 +1,19 @@
-using Myline.Core.Configuration;
+using Myline.Core.Configuration.Interfaces;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Core.Utilities.Extensions;
+using Myline.Core.Utilities.Interfaces;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
-public class HowLongToBeatProvider : IProvider
+public class HowLongToBeatProvider(ProviderConstructorInput construct) : IProvider
 {
-	private static HltbConfig Config => ConfigStore.Config.HltbConfig;
+	private readonly IWebRequests _webRequests = construct.WebRequests;
+	private readonly IConfigStore _configStore = construct.ConfigStore;
+	private HltbConfig Config => _configStore.Config.HltbConfig;
 
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
@@ -59,7 +62,7 @@ public class HowLongToBeatProvider : IProvider
 		return history;
 	}
 
-	private static async Task<Result<HowLongToBeatGamesListResponse>> GetGamesListForUser(int userId)
+	private async Task<Result<HowLongToBeatGamesListResponse>> GetGamesListForUser(int userId)
 	{
 		var apiUrl = new Uri($"https://howlongtobeat.com/api/user/{userId}/games/list");
 		var body = new HowLongToBeatGamesListQuery
@@ -70,7 +73,7 @@ public class HowLongToBeatProvider : IProvider
 			Limit = 500,
 			CurrentUserHome = true
 		};
-		var result = await WebRequests.Post<HowLongToBeatGamesListQuery, HowLongToBeatGamesListResponse>(apiUrl, body);
+		var result = await _webRequests.Post<HowLongToBeatGamesListQuery, HowLongToBeatGamesListResponse>(apiUrl, body);
 		if (result.IsError)
 		{
 			return Result<HowLongToBeatGamesListResponse>.Fail(result.Error);

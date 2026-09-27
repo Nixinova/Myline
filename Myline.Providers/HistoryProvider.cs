@@ -1,20 +1,25 @@
 using Myline.Core.Models;
 using Myline.Providers.Interfaces;
 using Myline.Repository;
+using Myline.Repository.Interfaces;
 
 namespace Myline.Providers;
 
-public class HistoryProvider(IReadOnlyCollection<IProvider> providers) : IProvider
+public class HistoryProvider(
+	IReadOnlyCollection<IProvider> providers,
+	ICachedDatesRepository cachedDatesRepository,
+	IHistoryRepository historyRepository
+) : IProvider
 {
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
 		var history = new List<HistoryItem>();
 
 		// Check cache first
-		var cached = await CachedDatesRepository.IsCachedBetween(input.DateRange);
+		var cached = await cachedDatesRepository.IsCachedBetween(input.DateRange);
 		if (cached)
 		{
-			var cachedHistory = await HistoryRepository.GetHistoryWithinRange(input.DateRange);
+			var cachedHistory = await historyRepository.GetHistoryWithinRange(input.DateRange);
 			return Result<IReadOnlyCollection<HistoryItem>>.Ok(cachedHistory);
 		}
 
@@ -31,8 +36,8 @@ public class HistoryProvider(IReadOnlyCollection<IProvider> providers) : IProvid
 		}
 
 		// Save to cache
-		await HistoryRepository.SaveHistoryItems(history);
-		await CachedDatesRepository.SaveCachedDates(input.DateRange);
+		await historyRepository.SaveHistoryItems(history);
+		await cachedDatesRepository.SaveCachedDates(input.DateRange);
 
 		return Result<IReadOnlyCollection<HistoryItem>>.Ok(history);
 	}

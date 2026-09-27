@@ -1,19 +1,24 @@
 using System.Globalization;
-using Myline.Core.Configuration;
+using Myline.Core.Configuration.Interfaces;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
 using Myline.Core.Utilities;
 using Myline.Core.Utilities.Extensions;
+using Myline.Core.Utilities.Interfaces;
 using Myline.Providers.Interfaces;
 using Myline.Providers.Models;
 
 namespace Myline.Providers.Sources;
 
-public class LastFmProvider : IProvider
+public class LastFmProvider(ProviderConstructorInput construct) : IProvider
 {
-	private static LastFmConfig Config => ConfigStore.Config.LastFmConfig;
 	private static readonly Uri ApiUrl = new("https://ws.audioscrobbler.com/2.0/");
 	private const string ApiKey = "29928f386eb7f4f024598d42628b1428";
+
+	private readonly IWebRequests _webRequests = construct.WebRequests;
+	private readonly IConfigStore _configStore = construct.ConfigStore;
+
+	private LastFmConfig Config => _configStore.Config.LastFmConfig;
 
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
@@ -62,7 +67,7 @@ public class LastFmProvider : IProvider
 			{ "limit", "1000" },
 			{ "format", "json" },
 		};
-		var result = await WebRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
+		var result = await _webRequests.Get<LastFmRecentTracksResponse>(ApiUrl, urlParams);
 		if (result.IsError)
 		{
 			return Result<LastFmRecentTracksResponse>.Fail(result.Error);
