@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Myline.Core.Configuration;
 using Myline.Core.Configuration.Models;
 using Myline.Core.Models;
@@ -52,8 +53,8 @@ public class GitHubProvider : IProvider
 		var history = new List<HistoryItem>();
 
 		var commits = new List<GitHubCommitResponse>();
-		var prs = new List<GitHubPrResponse>();
-		var issues = new List<GitHubIssueResponse>();
+		var prs = new List<GitHubSearchItemResponse>();
+		var issues = new List<GitHubSearchItemResponse>();
 		foreach (var username in Config.Usernames)
 		{
 			var contributionsResult = await GetContributions(input, username);
@@ -110,7 +111,7 @@ public class GitHubProvider : IProvider
 				Site = "GitHub",
 				Description =
 					"Created PR " + Fmt.Sec("#" + pr.Number) +
-					" on " + Fmt.Prim(pr.Base.RepoName) +
+					" on " + Fmt.Prim(pr.Repo) +
 					" - " + Fmt.Ter(pr.Title) +
 					" - " + Fmt.Usr(pr.Body)
 			});
@@ -162,7 +163,7 @@ public class GitHubProvider : IProvider
 
 		foreach (var repo in repoData)
 		{
-			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/commits");
+			var url = new Uri($"https://api.github.com/repos/{repo.FullName}/commits");
 			var queryParams = new Dictionary<string, string>
 			{
 				{ "author", username },
@@ -174,7 +175,7 @@ public class GitHubProvider : IProvider
 			var result = await WebRequests.Get<IReadOnlyCollection<GitHubCommitResponse>>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
-				return Result<IReadOnlyCollection<GitHubCommitResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: commits: {result.Error}");
+				return Result<IReadOnlyCollection<GitHubCommitResponse>>.Fail($"{repo.FullName}: commits: {result.Error}");
 			}
 			if (result.Value != null)
 			{
@@ -185,30 +186,30 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private static async Task<Result<IReadOnlyCollection<GitHubPrResponse>>> GetPrs(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	private static async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetPrs(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username, int page = 1)
 	{
-		var responses = new List<GitHubPrResponse>();
+		var responses = new List<GitHubSearchItemResponse>();
 
 		foreach (var repo in repoData)
 		{
-			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/pulls");
+			var url = new Uri($"https://api.github.com/search/issues");
 			var queryParams = new Dictionary<string, string>
 			{
-				{ "creator", username },
-				{ "state", "all" },
-				{ "sort", "created" },
-				{ "direction", "desc" },
-				{ "per_page", "100" },
-				{ "page", "1" }
+				["q"] = string.Join(" ", [
+					$"repo:{repo.FullName}",
+					$"author:{username}",
+					"type:pr",
+					$"created:{input.DateRange.From:yyyy-MM-dd}..{input.DateRange.To:yyyy-MM-dd}",
+				])
 			};
-			var result = await WebRequests.Get<IReadOnlyCollection<GitHubPrResponse>>(url, queryParams, GetRequestSettings());
+			var result = await WebRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
-				return Result<IReadOnlyCollection<GitHubPrResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: PRs: {result.Error}");
+				return Result<IReadOnlyCollection<GitHubSearchItemResponse>>.Fail($"{repo.FullName}: PRs: {result.Error}");
 			}
 			if (result.Value != null)
 			{
-				var prs = result.Value.Where(x =>
+				var prs = result.Value.Items.Where(x =>
 					input.DateRange.Contains(x.CreatedAt)
 				);
 				responses.AddRange(prs);
@@ -218,29 +219,30 @@ public class GitHubProvider : IProvider
 		return responses;
 	}
 
-	private static async Task<Result<IReadOnlyCollection<GitHubIssueResponse>>> GetIssues(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
+	private static async Task<Result<IReadOnlyCollection<GitHubSearchItemResponse>>> GetIssues(ProviderInput input, IReadOnlyList<ContributionRepoData> repoData, string username)
 	{
-		var responses = new List<GitHubIssueResponse>();
+		var responses = new List<GitHubSearchItemResponse>();
 
 		foreach (var repo in repoData)
 		{
-			var url = new Uri($"https://api.github.com/repos/{repo.Owner.Name}/{repo.Name}/issues");
+			var url = new Uri($"https://api.github.com/search/issues");
 			var queryParams = new Dictionary<string, string>
 			{
-				{ "creator", username },
-				{ "state", "all" },
-				{ "since", input.DateRange.From.ToString("O") },
-				{ "per_page", "100" },
-				{ "page", "1" }
+				["q"] = string.Join(" ", [
+					$"repo:{repo.FullName}",
+					$"author:{username}",
+					"type:issue",
+					$"created:{input.DateRange.From:yyyy-MM-dd}..{input.DateRange.To:yyyy-MM-dd}",
+				])
 			};
-			var result = await WebRequests.Get<IReadOnlyCollection<GitHubIssueResponse>>(url, queryParams, GetRequestSettings());
+			var result = await WebRequests.Get<GitHubSearchResponse>(url, queryParams, GetRequestSettings());
 			if (result.IsError)
 			{
-				return Result<IReadOnlyCollection<GitHubIssueResponse>>.Fail($"{repo.Owner.Name}/{repo.Name}: issues: {result.Error}");
+				return Result<IReadOnlyCollection<GitHubSearchItemResponse>>.Fail($"{repo.FullName}: issues: {result.Error}");
 			}
 			if (result.Value != null)
 			{
-				var issues = result.Value.Where(x =>
+				var issues = result.Value.Items.Where(x =>
 					input.DateRange.Contains(x.CreatedAt)
 				);
 				responses.AddRange(issues);
