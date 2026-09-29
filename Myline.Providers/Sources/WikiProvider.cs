@@ -54,11 +54,14 @@ public class WikiProvider(ProviderConstructorInput construct) : IProvider
 					_ => "Affected"
 				};
 				var pageText = $"{Fmt.Prim(edit.Title)}{section.IfNotEmpty(x => $" § {Fmt.Ter(x)}")}";
+				var summaryText = !string.IsNullOrWhiteSpace(summary) || edit.IsMinor
+					? " - " + (edit.IsMinor ? "m " : "") + summary.IfNotEmpty(Fmt.Usr)
+					: "";
 				var historyItem = new HistoryItem
 				{
 					Timestamp = new Timestamp(edit.Timestamp, TimestampPrecision.Second),
 					Site = GuessWikiName(apiUri.Host),
-					Description = $"{action} {pageText}{summary.IfNotEmpty(x => " - " + Fmt.Usr(x))}"
+					Description = $"{action} {pageText}{summaryText}"
 				};
 				history.Add(historyItem);
 			}

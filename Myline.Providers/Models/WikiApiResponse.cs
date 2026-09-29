@@ -25,6 +25,7 @@ public interface IWikiEvent
 	public string Title { get; }
 	public DateTime Timestamp { get; }
 	public string? Comment { get; }
+	public bool IsMinor { get; }
 }
 
 public sealed record WikiContribution : IWikiEvent
@@ -37,6 +38,10 @@ public sealed record WikiContribution : IWikiEvent
 
 	[JsonPropertyName("comment")]
 	public string? Comment { get; init; }
+
+	[JsonPropertyName("minor")]
+	public string? Minor { private get; init; }
+	public bool IsMinor => Minor is not null;
 
 	[JsonPropertyName("sizediff")]
 	public required long SizeDiff { get; init; }
@@ -67,6 +72,8 @@ public sealed record WikiLogEvent : IWikiEvent
 
 	[JsonPropertyName("action")]
 	public required string Action { get; init; }
+
+	public bool IsMinor => false;
 
 	// int logid
 	// int ns
