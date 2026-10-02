@@ -17,6 +17,10 @@ public class WikiProvider(ProviderConstructorInput construct) : IProvider
 
 	private WikiConfig Config => _configStore.Config.WikiConfig;
 
+	// Certain edits like creations are both log entries and page edits
+	// Add them to this set so we can skip them when going through the edits
+	private ISet<(DateTime time, string page)> _deduped = new HashSet<(DateTime time, string page)>();
+
 	public async Task<Result<IReadOnlyCollection<HistoryItem>>> CollectHistory(ProviderInput input)
 	{
 		var history = new List<HistoryItem>();
@@ -40,9 +44,8 @@ public class WikiProvider(ProviderConstructorInput construct) : IProvider
 
 			foreach (var edit in wikiEvents)
 			{
-				if (edit is WikiLogEvent { Type: "create" or "upload" })
+				if (!_deduped.Add((edit.Timestamp, edit.Title)))
 				{
-					// These double as edits
 					continue;
 				}
 
@@ -82,7 +85,12 @@ public class WikiProvider(ProviderConstructorInput construct) : IProvider
 		{
 			return Result<IReadOnlyList<IWikiEvent>>.Fail(contribsResult.Error);
 		}
-		return Result<IReadOnlyList<IWikiEvent>>.Ok([.. contribsResult.Value, .. logsResult.Value]);
+
+		return Result<IReadOnlyList<IWikiEvent>>.Ok([
+			// Logs first, as 'create'/'upload' is a more useful description than 'edit'
+			.. logsResult.Value,
+			.. contribsResult.Value,
+		]);
 	}
 
 	private async Task<Result<IReadOnlyList<IWikiEvent>>> GetContributions(Uri apiUri, ProviderInput input, string username)
@@ -173,7 +181,7 @@ public class WikiProvider(ProviderConstructorInput construct) : IProvider
 			"upload" => "Uploaded",
 			"overwrite" => "Overwrote",
 			"revert" => "Reverted",
-			"delete" => "Deleted",
+			"delete" or "delete_redir" => "Deleted",
 			"restore" => "Restored",
 			"revision" => "Deleted revision of",
 			"move" or "move_redir" => "Moved",
